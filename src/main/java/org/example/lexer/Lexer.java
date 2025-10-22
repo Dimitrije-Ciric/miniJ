@@ -8,7 +8,7 @@ public class Lexer {
     private final List<Token> tokens = new ArrayList<>();
 
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
-            Map.entry("bool", TokenType.BOOL),
+            Map.entry("boolJ", TokenType.BOOL),
             Map.entry("true", TokenType.BOOL_TRUE_LIT),
             Map.entry("false", TokenType.BOOL_FALSE_LIT)
     );
@@ -23,7 +23,6 @@ public class Lexer {
             sc.beginToken();
             scanToken();
         }
-//        tokens.add(new Token(TokenType.EOF, "\0", sc.getLine(), sc.getCol(), sc.getCol()));
         return tokens;
     }
 
