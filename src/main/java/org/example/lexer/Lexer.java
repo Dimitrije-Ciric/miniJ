@@ -10,7 +10,20 @@ public class Lexer {
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
             Map.entry("boolJ", TokenType.BOOL),
             Map.entry("true", TokenType.BOOL_TRUE_LIT),
-            Map.entry("false", TokenType.BOOL_FALSE_LIT)
+            Map.entry("false", TokenType.BOOL_FALSE_LIT),
+            Map.entry("intJ", TokenType.INT),
+            Map.entry("doubleJ", TokenType.DOUBLE),
+            Map.entry("charJ", TokenType.CHAR),
+            Map.entry("stringJ", TokenType.STRING),
+            Map.entry("and", TokenType.AND),
+            Map.entry("or", TokenType.OR),
+            Map.entry("not", TokenType.NOT),
+            Map.entry("return", TokenType.RET),
+            Map.entry("ifJ", TokenType.IF),
+            Map.entry("else", TokenType.ELSE),
+            Map.entry("elseifJ", TokenType.ELSEIF),
+            Map.entry("forJ", TokenType.FOR),
+            Map.entry("whileJ", TokenType.WHILE)
     );
 
     public Lexer(String source) {
@@ -30,19 +43,49 @@ public class Lexer {
         char c = sc.advance();
 
         switch (c) {
-            case '=' -> add(TokenType.ASSIGN);
+            case '(' -> add(TokenType.LPAREN);
+            case ')' -> add(TokenType.RPAREN);
+            case '[' -> add(TokenType.LBRACKET);
+            case ']' -> add(TokenType.RBRACKET);
+            case '{' -> add(TokenType.BEGIN);
+            case '}' -> add(TokenType.END);
+            case '+' -> add(TokenType.PLUS);
+            case '*' -> add(TokenType.MULTIPLY);
+            case '/' -> add(TokenType.DIVIDE);
+            case '%' -> add(TokenType.MOD);
+            case '<' -> add(sc.match('=') ? TokenType.LE : TokenType.LT);
+            case '>' -> add(sc.match('=') ? TokenType.GE : TokenType.GT);
+            case '=' -> add(sc.match('=') ? TokenType.EQ : TokenType.ASSIGN);
             case '!' -> add(TokenType.SEP_EX);
+            case ',' -> add(TokenType.SEP_COMMA);
             case '\n', ' ', '\r', '\t' -> {}
             default -> {
-                if (isIdentStart(c)) identifier();
+                if (Character.isDigit(c)) number();
+                else if (isIdentStart(c)) identifier();
                 else throw error("Unexpected character");
             }
         }
     }
 
+    private void number() {
+        while (Character.isDigit(sc.peek())) sc.advance();
+        String text = source.substring(sc.getStartIdx(), sc.getCur());
+        char nextChar = sc.peek();
+        if (Character.isAlphabetic(nextChar)) {
+            throw error("Error: Character in int literal");
+        }
+        addLiteralInt(text);
+    }
+
     private void identifier() {
         while (isIdentPart(sc.peek())) sc.advance();
         String text = source.substring(sc.getStartIdx(), sc.getCur());
+
+        if (text.equals("not") && sc.match('=')) {
+            add(TokenType.NEQ, "not=");
+            return;
+        }
+
         TokenType type = KEYWORDS.getOrDefault(text, TokenType.IDENT);
         add(type, text);
     }
@@ -58,6 +101,11 @@ public class Lexer {
 
     private void add(TokenType type, String text) {
         tokens.add(new Token(type, text,
+                sc.getStartLine(), sc.getStartCol(), sc.getCol() - 1));
+    }
+
+    private void addLiteralInt(String literal) {
+        tokens.add(new Token(TokenType.INT_LIT, literal,
                 sc.getStartLine(), sc.getStartCol(), sc.getCol() - 1));
     }
 

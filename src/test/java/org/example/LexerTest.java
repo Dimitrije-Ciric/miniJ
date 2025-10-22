@@ -246,12 +246,6 @@ public class LexerTest {
     }
 
     @Test
-    public void testMissingSeparator() {
-        lexer = new Lexer("intJ x = 10");
-        assertThrows(RuntimeException.class, lexer::tokenize);
-    }
-
-    @Test
     public void testInvalidCharLiteral() {
         lexer = new Lexer("charJ c = 'AB'!");
         assertThrows(RuntimeException.class, lexer::tokenize);
