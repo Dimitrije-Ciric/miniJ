@@ -1,0 +1,23 @@
+intJ fibonaci(intJ n) {
+    intJ a = 0!
+    intJ b = 1!
+    intJ c = 0!
+
+    ifJ(n == 0) {
+        return a!
+    }
+    elseifJ(n == 1) {
+        return b!
+    }
+
+   forJ(intJ = 2! i <= n! i = i + 1) {
+        c = a + b!
+        a = b!
+        b = c!
+   }
+
+   return c!
+}
+intJ broj = 10!
+intJ rez = fibonaci(broj)!
+print(rez)!

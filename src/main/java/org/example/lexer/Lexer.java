@@ -20,7 +20,7 @@ public class Lexer {
             Map.entry("not", TokenType.NOT),
             Map.entry("return", TokenType.RET),
             Map.entry("ifJ", TokenType.IF),
-            Map.entry("else", TokenType.ELSE),
+            Map.entry("elseJ", TokenType.ELSE),
             Map.entry("elseifJ", TokenType.ELSEIF),
             Map.entry("forJ", TokenType.FOR),
             Map.entry("whileJ", TokenType.WHILE)
