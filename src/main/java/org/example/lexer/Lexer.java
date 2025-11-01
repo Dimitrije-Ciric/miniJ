@@ -23,7 +23,7 @@ public class Lexer {
             Pattern.compile("^\\d+\\.\\d+"), // double
             Pattern.compile("^\\d+"), // int
             Pattern.compile("^\"[^\"]*\""), // string
-            Pattern.compile("^'[^']*'"), // char
+            Pattern.compile("^'[^']'"), // char
             Pattern.compile("^[a-zA-Z][a-zA-Z0-9]*"),
             Pattern.compile("^[+\\-*/%()\\[\\]{}<>=!,]"),
     };
@@ -34,6 +34,7 @@ public class Lexer {
             Map.entry("doubleJ", TokenType.DOUBLE),
             Map.entry("charJ", TokenType.CHAR),
             Map.entry("stringJ", TokenType.STRING),
+            Map.entry("arrayJ", TokenType.ARRAY),
             Map.entry("and", TokenType.AND),
             Map.entry("or", TokenType.OR),
             Map.entry("not", TokenType.NOT),
@@ -60,7 +61,7 @@ public class Lexer {
             }
         }
 
-        tokens.add(new Token(TokenType.EOF, "", sc.getStartLine(), sc.getStartCol(), sc.getStartCol()));
+        tokens.add(new Token(TokenType.EOF, "", sc.getLine(), sc.getCol(), sc.getCol()));
         return tokens;
     }
 
@@ -174,19 +175,19 @@ public class Lexer {
 
         TokenType type = switch (patternIndex) {
             case 0 -> TokenType.SPACE;
-            case 1 -> TokenType.DOUBLE_LIT;
-            case 2 -> TokenType.INT_LIT;
-            case 3 -> TokenType.STRING_LIT;
-            case 4 -> TokenType.CHAR_LIT;
-            case 5 -> TokenType.BOOL_TRUE_LIT;
-            case 6 -> TokenType.BOOL_FALSE_LIT;
-            case 7 -> TokenType.AND;
-            case 8 -> TokenType.OR;
-            case 9 -> TokenType.NOT;
-            case 10 -> TokenType.LE;
-            case 11 -> TokenType.GE;
-            case 12 -> TokenType.EQ;
-            case 13 -> TokenType.NEQ;
+            case 1 -> TokenType.BOOL_TRUE_LIT;
+            case 2 -> TokenType.BOOL_FALSE_LIT;
+            case 3 -> TokenType.AND;
+            case 4 -> TokenType.OR;
+            case 5 -> TokenType.NOT;
+            case 6 -> TokenType.LE;
+            case 7 -> TokenType.GE;
+            case 8 -> TokenType.EQ;
+            case 9 -> TokenType.NEQ;
+            case 10 -> TokenType.DOUBLE_LIT;
+            case 11 -> TokenType.INT_LIT;
+            case 12 -> TokenType.STRING_LIT;
+            case 13 -> TokenType.CHAR_LIT;
             case 14 -> TokenType.IDENT;
             case 15 -> getSingleCharTokenType(matchedText.charAt(0));
             default -> throw new IllegalArgumentException("Unknown pattern index: " + patternIndex);

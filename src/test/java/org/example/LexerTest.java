@@ -23,7 +23,8 @@ public class LexerTest {
                 new Token(IDENT, "x", 1, 7, 7),
                 new Token(ASSIGN, "=", 1, 9, 9),
                 new Token(BOOL_FALSE_LIT, "false", 1, 11, 15),
-                new Token(SEP_EX, "!", 1, 16, 16)
+                new Token(SEP_EX, "!", 1, 16, 16),
+                new Token(EOF, "", 1, 17, 17)
         ));
     }
 
@@ -40,11 +41,12 @@ public class LexerTest {
                 new Token(ASSIGN, "=", 1, 8, 8),
                 new Token(INT_LIT, "10", 1, 10, 11),
                 new Token(SEP_EX, "!", 1, 12, 12),
-                new Token(DOUBLE, "doubleJ", 2, 1, 8),
-                new Token(IDENT, "b", 2, 10, 10),
-                new Token(ASSIGN, "=", 2, 12, 12),
-                new Token(DOUBLE_LIT, "4.52", 2, 14, 17),
-                new Token(SEP_EX, "!", 2, 18, 18)
+                new Token(DOUBLE, "doubleJ", 2, 1, 7),
+                new Token(IDENT, "b", 2, 9, 9),
+                new Token(ASSIGN, "=", 2, 11, 11),
+                new Token(DOUBLE_LIT, "4.52", 2, 13, 16),
+                new Token(SEP_EX, "!", 2, 17, 17),
+                new Token(EOF, "", 3, 1, 1)
         ));
     }
 
@@ -65,8 +67,9 @@ public class LexerTest {
                 new Token(IDENT, "c", 2, 7, 7),
                 new Token(ASSIGN, "=", 2, 9, 9),
                 new Token(CHAR_LIT, "'A'", 2, 11, 13),
-                new Token(SEP_EX, "!", 2, 14, 14)
-        ));
+                new Token(SEP_EX, "!", 2, 14, 14),
+                new Token(EOF, "", 3, 1, 1)
+                ));
     }
 
     @Test
@@ -100,7 +103,8 @@ public class LexerTest {
                 new Token(STRING_LIT, "\"b je vece\"", 4, 11, 21),
                 new Token(RPAREN, ")", 4, 22, 22),
                 new Token(SEP_EX, "!", 4, 23, 23),
-                new Token(END, "}", 5, 1, 1)
+                new Token(END, "}", 5, 1, 1),
+                new Token(EOF, "", 6, 1, 1)
         ));
     }
 
@@ -136,7 +140,8 @@ public class LexerTest {
                 new Token(IDENT, "i", 2, 11, 11),
                 new Token(RPAREN, ")", 2, 12, 12),
                 new Token(SEP_EX, "!", 2, 13, 13),
-                new Token(END, "}", 3, 1, 1)
+                new Token(END, "}", 3, 1, 1),
+                new Token(EOF, "", 4, 1, 1)
         ));
     }
 
@@ -164,7 +169,8 @@ public class LexerTest {
                 new Token(PLUS, "+", 2, 14, 14),
                 new Token(IDENT, "b", 2, 16, 16),
                 new Token(SEP_EX, "!", 2, 17, 17),
-                new Token(END, "}", 3, 1, 1)
+                new Token(END, "}", 3, 1, 1),
+                new Token(EOF, "", 4, 1, 1)
         ));
     }
 
@@ -197,7 +203,8 @@ public class LexerTest {
                 new Token(INT_LIT, "0", 3, 11, 11),
                 new Token(RBRACKET, "]", 3, 12, 12),
                 new Token(RPAREN, ")", 3, 13, 13),
-                new Token(SEP_EX, "!", 3, 14, 14)
+                new Token(SEP_EX, "!", 3, 14, 14),
+                new Token(EOF, "", 4, 1, 1)
         ));
     }
 
@@ -223,7 +230,8 @@ public class LexerTest {
                 new Token(LPAREN, "(", 2, 6, 6),
                 new Token(IDENT, "rezultat", 2, 7, 14),
                 new Token(RPAREN, ")", 2, 15, 15),
-                new Token(SEP_EX, "!", 2, 16, 16)
+                new Token(SEP_EX, "!", 2, 16, 16),
+                new Token(EOF, "", 3, 1, 1)
         ));
     }
 
@@ -236,6 +244,18 @@ public class LexerTest {
     @Test
     public void testUnterminatedString() {
         lexer = new Lexer("stringJ s = \"hello!");
+        assertThrows(RuntimeException.class, lexer::tokenize);
+    }
+
+    @Test
+    public void testUnterminatedChar() {
+        lexer = new Lexer("charJ c = 'h");
+        assertThrows(RuntimeException.class, lexer::tokenize);
+    }
+
+    @Test
+    public void testCharOf5() {
+        lexer = new Lexer("charJ c = 'abcde'");
         assertThrows(RuntimeException.class, lexer::tokenize);
     }
 
