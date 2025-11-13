@@ -1,0 +1,50 @@
+{
+  "type" : "for",
+  "init" : {
+    "type" : "assign",
+    "name" : "i",
+    "value" : {
+      "type" : "literal",
+      "value" : 0.0
+    }
+  },
+  "condition" : {
+    "type" : "binary",
+    "op" : "<",
+    "left" : {
+      "type" : "var",
+      "name" : "i"
+    },
+    "right" : {
+      "type" : "literal",
+      "value" : 5.0
+    }
+  },
+  "increment" : {
+    "type" : "assign",
+    "name" : "i",
+    "value" : {
+      "type" : "binary",
+      "op" : "+",
+      "left" : {
+        "type" : "var",
+        "name" : "i"
+      },
+      "right" : {
+        "type" : "literal",
+        "value" : 1.0
+      }
+    }
+  },
+  "body" : {
+    "type" : "block",
+    "statements" : [ {
+      "type" : "func_call",
+      "name" : "print",
+      "args" : [ {
+        "type" : "var",
+        "name" : "i"
+      } ]
+    } ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "type" : "block",
+  "statements" : [ {
+    "type" : "assign",
+    "name" : "x",
+    "value" : {
+      "type" : "literal",
+      "value" : null
+    }
+  }, {
+    "type" : "if_else",
+    "condition" : {
+      "type" : "binary",
+      "op" : ">",
+      "left" : {
+        "type" : "var",
+        "name" : "x"
+      },
+      "right" : {
+        "type" : "literal",
+        "value" : 0.0
+      }
+    },
+    "thenBranch" : {
+      "type" : "block",
+      "statements" : [ {
+        "type" : "func_call",
+        "name" : "print",
+        "args" : [ {
+          "type" : "var",
+          "name" : "x"
+        } ]
+      } ]
+    },
+    "elseBranch" : {
+      "type" : "block",
+      "statements" : [ {
+        "type" : "func_call",
+        "name" : "print",
+        "args" : [ {
+          "type" : "unary",
+          "op" : "-",
+          "operand" : {
+            "type" : "var",
+            "name" : "x"
+          }
+        } ]
+      } ]
+    }
+  } ]
+}

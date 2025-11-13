@@ -10,22 +10,33 @@ public class Lexer {
     private final List<Token> tokens = new ArrayList<>();
 
     private static final Pattern[] TOKEN_PATTERNS = {
-            Pattern.compile("^\\s+"),  // Whitespace
-            Pattern.compile("^true\\b"),
+            Pattern.compile("^\\s+"),           // whitespace
+            Pattern.compile("^true\\b"),        // boolean literal
             Pattern.compile("^false\\b"),
+            Pattern.compile("^forJ\\b"),        // keywords
+            Pattern.compile("^ifJ\\b"),
+            Pattern.compile("^elseJ\\b"),
+            Pattern.compile("^elseifJ\\b"),
+            Pattern.compile("^whileJ\\b"),
+            Pattern.compile("^intJ\\b"),
+            Pattern.compile("^boolJ\\b"),
+            Pattern.compile("^doubleJ\\b"),
+            Pattern.compile("^charJ\\b"),
+            Pattern.compile("^stringJ\\b"),
+            Pattern.compile("^arrayJ\\b"),
             Pattern.compile("^and\\b"),
             Pattern.compile("^or\\b"),
             Pattern.compile("^not\\b"),
             Pattern.compile("^<="),
             Pattern.compile("^>="),
             Pattern.compile("^=="),
-            Pattern.compile("^not="),
-            Pattern.compile("^\\d+\\.\\d+"), // double
-            Pattern.compile("^\\d+"), // int
-            Pattern.compile("^\"[^\"]*\""), // string
-            Pattern.compile("^'[^']'"), // char
-            Pattern.compile("^[a-zA-Z][a-zA-Z0-9]*"),
-            Pattern.compile("^[+\\-*/%()\\[\\]{}<>=!,]"),
+            Pattern.compile("^!="),
+            Pattern.compile("^\\d+\\.\\d+"), // double literal
+            Pattern.compile("^\\d+"),         // int literal
+            Pattern.compile("^\"[^\"]*\""),   // string literal
+            Pattern.compile("^'[^']'"),       // char literal
+            Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*"), // identifikator
+            Pattern.compile("^[+\\-*/%()\\[\\]{}<>=!,]") // single char token
     };
 
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
@@ -168,32 +179,52 @@ public class Lexer {
     }
 
     private Token createTokenForPattern(int patternIndex, String matchedText) {
-        TokenType keywordType = KEYWORDS.get(matchedText);
-        if (keywordType != null) {
-            return new Token(keywordType, matchedText, sc.getStartLine(), sc.getStartCol(), sc.getStartCol() + matchedText.length() - 1);
+        TokenType type;
+
+        // Ako je ključna reč (tip u KEYWORDS), koristi ga direktno
+        if (KEYWORDS.containsKey(matchedText)) {
+            type = KEYWORDS.get(matchedText);
+        } else {
+            // Inače, određujemo tip prema regex pattern indexu
+            type = switch (patternIndex) {
+                case 0 -> TokenType.SPACE;
+                case 1 -> TokenType.BOOL_TRUE_LIT;
+                case 2 -> TokenType.BOOL_FALSE_LIT;
+                case 3 -> TokenType.FOR;
+                case 4 -> TokenType.IF;
+                case 5 -> TokenType.ELSE;
+                case 6 -> TokenType.ELSEIF;
+                case 7 -> TokenType.WHILE;
+                case 8 -> TokenType.INT;
+                case 9 -> TokenType.BOOL;
+                case 10 -> TokenType.DOUBLE;
+                case 11 -> TokenType.CHAR;
+                case 12 -> TokenType.STRING;
+                case 13 -> TokenType.ARRAY;
+                case 14 -> TokenType.AND;
+                case 15 -> TokenType.OR;
+                case 16 -> TokenType.NOT;
+                case 17 -> TokenType.LE;
+                case 18 -> TokenType.GE;
+                case 19 -> TokenType.EQ;
+                case 20 -> TokenType.NEQ;
+                case 21 -> TokenType.DOUBLE_LIT;
+                case 22 -> TokenType.INT_LIT;
+                case 23 -> TokenType.STRING_LIT;
+                case 24 -> TokenType.CHAR_LIT;
+                case 25 -> TokenType.IDENT;
+                case 26 -> getSingleCharTokenType(matchedText.charAt(0));
+                default -> throw new IllegalArgumentException("Unknown pattern index: " + patternIndex);
+            };
         }
 
-        TokenType type = switch (patternIndex) {
-            case 0 -> TokenType.SPACE;
-            case 1 -> TokenType.BOOL_TRUE_LIT;
-            case 2 -> TokenType.BOOL_FALSE_LIT;
-            case 3 -> TokenType.AND;
-            case 4 -> TokenType.OR;
-            case 5 -> TokenType.NOT;
-            case 6 -> TokenType.LE;
-            case 7 -> TokenType.GE;
-            case 8 -> TokenType.EQ;
-            case 9 -> TokenType.NEQ;
-            case 10 -> TokenType.DOUBLE_LIT;
-            case 11 -> TokenType.INT_LIT;
-            case 12 -> TokenType.STRING_LIT;
-            case 13 -> TokenType.CHAR_LIT;
-            case 14 -> TokenType.IDENT;
-            case 15 -> getSingleCharTokenType(matchedText.charAt(0));
-            default -> throw new IllegalArgumentException("Unknown pattern index: " + patternIndex);
-        };
-
-        return new Token(type, matchedText, sc.getStartLine(), sc.getStartCol(), sc.getStartCol() + matchedText.length() - 1);
+        return new Token(
+                type,
+                matchedText,
+                sc.getStartLine(),
+                sc.getStartCol(),
+                sc.getStartCol() + matchedText.length() - 1
+        );
     }
 
     private TokenType getSingleCharTokenType(char c) {

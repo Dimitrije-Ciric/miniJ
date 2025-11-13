@@ -69,7 +69,7 @@ public class LexerTest {
                 new Token(CHAR_LIT, "'A'", 2, 11, 13),
                 new Token(SEP_EX, "!", 2, 14, 14),
                 new Token(EOF, "", 3, 1, 1)
-                ));
+        ));
     }
 
     @Test

@@ -12,7 +12,7 @@ public enum TokenType {
     ASSIGN,
 
     // arithmetic operators
-    PLUS, MINUS, MULTIPLY, DIVIDE, MOD,
+    PLUS, MINUS, MULTIPLY, DIVIDE, MOD, CARET,
 
     // relational operators
     EQ, NEQ, LT, LE, GT, GE,
@@ -24,7 +24,7 @@ public enum TokenType {
     IF, ELSE, ELSEIF, FOR, WHILE,
 
     // functions
-    FUNC, RET,
+    FUNC, RET, READ, PRINT,
 
     // other
     BEGIN, END,
@@ -33,5 +33,4 @@ public enum TokenType {
 
     // identifier
     IDENT
-
 }

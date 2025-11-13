@@ -1,0 +1,11 @@
+{
+  "type" : "func_call",
+  "name" : "print",
+  "args" : [ {
+    "type" : "var",
+    "name" : "x"
+  }, {
+    "type" : "var",
+    "name" : "y"
+  } ]
+}
