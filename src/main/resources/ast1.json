@@ -1,8 +1,0 @@
-{
-  "type" : "assign",
-  "name" : "x",
-  "value" : {
-    "type" : "literal",
-    "value" : 5.0
-  }
-}

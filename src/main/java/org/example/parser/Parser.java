@@ -1,10 +1,15 @@
 package org.example.parser;
 
+import org.example.ast.Program;
+import org.example.ast.Stmt;
 import org.example.lexer.Token;
 import org.example.lexer.TokenType;
+import org.example.ast.Expr;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public final class Parser {
     private final List<Token> tokens;
@@ -57,6 +62,11 @@ public final class Parser {
         throw error(peek(), message);
     }
 
+    private Token consume(TokenType type) {
+        if (check(type)) return advance();
+        return null;
+    }
+
     private ParseError error(Token token, String message) {
         return new ParseError("Parse error at '" + token.lexeme() + "': " + message);
     }
@@ -67,13 +77,17 @@ public final class Parser {
     }
 
     // ----- ENTRY POINT -----
-    public Expr parse() {
-        List<Expr> statements = new ArrayList<>();
-        while (!isAtEnd()) {
-            statements.add(statement());
-        }
-        if (statements.size() == 1) return statements.get(0);
-        return new Expr.Block(statements);
+    public Program parse() {
+        List<Stmt> statements = new LinkedList<>();
+
+        Stmt stmt = null;
+        while ((stmt = statement()) != null)
+            statements.add(stmt);
+
+        if (!isAtEnd() || peek().type() != TokenType.EOF)
+            return null; // program must end with EOF!!!!
+
+        return new Program(statements);
     }
 
     private boolean isType(Token token) {
@@ -90,218 +104,350 @@ public final class Parser {
         }
         return false;
     }
-    private Expr statement() {
-        if (match(TokenType.IF)) return ifStatement();
-        if (match(TokenType.WHILE)) return whileStatement();
-        if (match(TokenType.FOR)) return forStatement();
 
-        if (check(TokenType.INT, TokenType.DOUBLE, TokenType.BOOL,
-                TokenType.CHAR, TokenType.STRING, TokenType.ARRAY)) {
-            return varDeclaration();
+    private Stmt statement() {
+        Stmt stmt = exprStmt();
+
+//        if (stmt == null && match(TokenType.IF)) return ifStatement();
+//        if (stmt == null && match(TokenType.WHILE)) return whileStatement();
+//        if (stmt == null && match(TokenType.FOR)) return forStatement();
+
+        return stmt;
+    }
+
+    private Stmt exprStmt() {
+        int cursor = current;
+
+        Expr ex = expr();
+
+        if (ex == null)
+            return null;
+
+        if (advance().type() != TokenType.SEP_EX) {
+            this.current = cursor;
+            return null;
         }
 
-        return expressionStatement();
+        return new Stmt.ExprStmt(ex);
     }
 
-    private Expr varDeclaration() {
-        Token typeToken = advance(); // ovo je tip, npr. intJ
-        Token name = consume(TokenType.IDENT, "Expect variable name.");
-
-        Expr initializer = null;
-        if (match(TokenType.ASSIGN)) {
-            initializer = expression();
-        }
-
-        consume(TokenType.SEP_EX, "Expect '!' after variable declaration.");
-
-        if (initializer != null) {
-            return new Expr.Assign(name, initializer);
-        }
-
-        return new Expr.Assign(name, new Expr.Literal(null));
+    private Expr expr() {
+        return logicalOrExpr();
     }
 
-    private Expr expressionStatement() {
-        Expr expr = expression();
-        consume(TokenType.SEP_EX, "Expect '!' after expression.");
-        return expr;
-    }
+    private Expr logicalOrExpr() {
+        int cursor = current;
 
-    private Expr ifStatement() {
-        consume(TokenType.LPAREN, "Expect '(' after 'ifJ'.");
-        Expr condition = expression();
-        consume(TokenType.RPAREN, "Expect ')' after if condition.");
-        Expr.Block thenBranch = block();
-        Expr.Block elseBranch = null;
-        if (match(TokenType.ELSE)) {
-            elseBranch = block();
-        }
-        return new Expr.IfElse(condition, thenBranch, elseBranch);
-    }
+        Expr logicalAndExpr = logicalAndExpr();
 
-    private Expr.Block block() {
-        consume(TokenType.BEGIN, "Expect '{' to start block.");
-        List<Expr> stmts = new ArrayList<>();
-        while (!check(TokenType.END) && !isAtEnd()) {
-            stmts.add(statement());
-        }
-        consume(TokenType.END, "Expect '}' to close block.");
-        return new Expr.Block(stmts);
-    }
+        if (logicalAndExpr == null)
+            return null;
 
-    private Expr whileStatement() {
-        consume(TokenType.LPAREN, "Expect '(' after 'whileJ'.");
-        Expr condition = expression();
-        consume(TokenType.RPAREN, "Expect ')' after while condition.");
-        Expr.Block body = block();
-        return new Expr.While(condition, body);
-    }
+        List<Expr> exprs = new LinkedList<>(List.of(logicalAndExpr));
 
-    private Expr forStatement() {
-        consume(TokenType.LPAREN, "Expect '(' after 'forJ'.");
+        while (true) {
+            Token token = peek();
 
-        // Inicijalizacija može biti varDeclaration ili expressionStatement
-        Expr init;
-        if (check(TokenType.INT, TokenType.DOUBLE, TokenType.BOOL,
-                TokenType.CHAR, TokenType.STRING, TokenType.ARRAY)) {
-            init = varDeclaration();
-        } else {
-            init = expressionStatement();
-        }
+            if (!Objects.equals(TokenType.OR, token.type()))
+                break;
 
-        Expr condition = expressionStatement(); // i dalje expression + '!'
-        Expr increment = expressionStatement(); // i dalje expression + '!'
+            advance();
 
-        consume(TokenType.RPAREN, "Expect ')' after for clauses.");
-        Expr.Block body = block();
-        return new Expr.For(init, condition, increment, body);
-    }
+            logicalAndExpr = logicalAndExpr();
 
-    // ----- EXPRESSIONS -----
-    private Expr expression() {
-        return assignment();
-    }
-
-    private Expr assignment() {
-        Expr expr = or();
-        if (match(TokenType.ASSIGN)) {
-            Token equals = previous();
-            Expr value = assignment();
-            if (expr instanceof Expr.Var var) {
-                return new Expr.Assign(var.name, value);
+            if (logicalAndExpr == null) {
+                current = cursor;
+                return null;
             }
-            throw error(equals, "Invalid assignment target.");
+
+            exprs.add(logicalAndExpr);
         }
-        return expr;
+
+        if (exprs.size() == 1)
+            return exprs.getFirst();
+
+        return new Expr.LogicalOrExpr(exprs);
     }
 
-    private Expr or() {
-        Expr expr = and();
-        while (match(TokenType.OR)) {
-            Token op = previous();
-            Expr right = and();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+    private Expr logicalAndExpr() {
+        int cursor = current;
 
-    private Expr and() {
-        Expr expr = equality();
-        while (match(TokenType.AND)) {
-            Token op = previous();
-            Expr right = equality();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+        Expr equalityExpr = equalityExpr();
 
-    private Expr equality() {
-        Expr expr = comparison();
-        while (match(TokenType.EQ, TokenType.NEQ)) {
-            Token op = previous();
-            Expr right = comparison();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+        if (equalityExpr == null)
+            return null;
 
-    private Expr comparison() {
-        Expr expr = add();
-        while (match(TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE)) {
-            Token op = previous();
-            Expr right = add();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+        List<Expr> exprs = new LinkedList<>(List.of(equalityExpr));
 
-    private Expr add() {
-        Expr expr = mul();
-        while (match(TokenType.PLUS, TokenType.MINUS)) {
-            Token op = previous();
-            Expr right = mul();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+        while (true) {
+            Token token = peek();
 
-    private Expr mul() {
-        Expr expr = unary();
-        while (match(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD)) {
-            Token op = previous();
-            Expr right = unary();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+            if (!Objects.equals(TokenType.AND, token.type()))
+                break;
 
-    private Expr unary() {
-        if (match(TokenType.NOT, TokenType.MINUS)) {
-            Token op = previous();
-            Expr right = unary();
-            return new Expr.Unary(op, right);
-        }
-        return power();
-    }
+            advance();
 
-    private Expr power() {
-        Expr expr = primary();
-        while (match(TokenType.CARET)) {
-            Token op = previous();
-            Expr right = primary();
-            expr = new Expr.Binary(expr, op, right);
-        }
-        return expr;
-    }
+            equalityExpr = equalityExpr();
 
-    private Expr primary() {
-        if (match(TokenType.INT_LIT, TokenType.DOUBLE_LIT,
-                TokenType.CHAR_LIT, TokenType.STRING_LIT,
-                TokenType.BOOL_TRUE_LIT, TokenType.BOOL_FALSE_LIT)) {
-            return new Expr.Literal(previous().literal());
-        }
-
-        if (match(TokenType.IDENT)) {
-            Token ident = previous();
-            if (match(TokenType.LPAREN)) { // function call
-                List<Expr> args = new ArrayList<>();
-                if (!check(TokenType.RPAREN)) {
-                    do {
-                        args.add(expression());
-                    } while (match(TokenType.SEP_COMMA));
-                }
-                consume(TokenType.RPAREN, "Expect ')' after function arguments.");
-                return new Expr.FuncCall(ident, args);
+            if (equalityExpr == null) {
+                current = cursor;
+                return null;
             }
-            return new Expr.Var(ident);
+
+            exprs.add(equalityExpr);
         }
 
-        if (match(TokenType.LPAREN)) {
-            Expr expr = expression();
-            consume(TokenType.RPAREN, "Expect ')' after expression.");
-            return new Expr.Grouping(expr);
-        }
+        if (exprs.size() == 1)
+            return exprs.getFirst();
 
-        throw error(peek(), "Expect expression.");
+        return new Expr.LogicalAndExpr(exprs);
     }
+
+    private Expr equalityExpr() {
+        int cursor = current;
+
+        Expr left = relationalExpr();
+
+        if (left == null)
+            return null;
+
+        Token op = null;
+        Expr right = null;
+
+        if (List.of(TokenType.EQ, TokenType.NEQ).contains(peek().type())) {
+            op = peek();
+
+            advance();
+
+            right = relationalExpr();
+
+            if (right == null) {
+                this.current = cursor;
+                return null;
+            }
+        }
+
+        if (op == null)
+            return left;
+
+        return new Expr.EqualityExpr(left, op, right);
+    }
+
+    private Expr relationalExpr() {
+        int cursor = current;
+
+        Expr left = additiveExpr();
+
+        if (left == null)
+            return null;
+
+        Token op = null;
+        Expr right = null;
+
+        if (List.of(
+                TokenType.GT, TokenType.GE,
+                TokenType.LT, TokenType.LE
+        ).contains(peek().type())) {
+            op = peek();
+
+            advance();
+
+            right = additiveExpr();
+
+            if (right == null) {
+                this.current = cursor;
+                return null;
+            }
+        }
+
+        if (op == null)
+            return left;
+
+        return new Expr.RelationalExpr(left, op, right);
+    }
+
+
+    private Expr additiveExpr() {
+        int cursor = current;
+
+        Expr multiplicativeExpr = multiplicativeExpr();
+
+        if (multiplicativeExpr == null)
+            return null;
+
+        List<Expr> exprs = new LinkedList<>(List.of(multiplicativeExpr));
+        List<Token> ops = new LinkedList<>();
+
+        while (true) {
+            Token token = peek();
+
+            if (!List.of(TokenType.PLUS, TokenType.MINUS).contains(token.type()))
+                break;
+
+            advance();
+
+            multiplicativeExpr = multiplicativeExpr();
+
+            if (multiplicativeExpr == null) {
+                current = cursor;
+                return null;
+            }
+
+            exprs.add(multiplicativeExpr);
+            ops.add(token);
+        }
+
+        if (exprs.size() == 1)
+            return exprs.getFirst();
+
+        return new Expr.AdditiveExpr(exprs, ops);
+    }
+
+    private Expr multiplicativeExpr() {
+        int cursor = current;
+
+        Expr unary = unaryExpr();
+
+        if (unary == null)
+            return null;
+
+        List<Expr> exprs = new LinkedList<>(List.of(unary));
+        List<Token> ops = new LinkedList<>();
+
+        while (true) {
+            Token token = peek();
+
+            if (!List.of(
+                    TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD
+            ).contains(token.type()))
+                break;
+
+            advance();
+
+            unary = unaryExpr();
+
+            if (unary == null) {
+                current = cursor;
+                return null;
+            }
+
+            exprs.add(unary);
+            ops.add(token);
+        }
+
+        if (exprs.size() == 1)
+            return exprs.getFirst();
+
+        return new Expr.MultiplicativeExpr(exprs, ops);
+    }
+
+    private Expr unaryExpr() {
+        int cursor = current;
+
+        Token op = null;
+
+        if (peek().type() == TokenType.PLUS || peek().type() == TokenType.MINUS || peek().type() == TokenType.NOT)
+            op = advance();
+
+        Expr e = functionCall();
+
+        if (e == null)
+            e = groupExpr();
+
+        if (e == null)
+            e = termExpr();
+
+        if (e == null) {
+            this.current = cursor;
+            return null;
+        }
+
+        if (op == null)
+             return e;
+
+        return new Expr.UnaryExpr(op, e);
+    }
+
+    private Expr termExpr() {
+        int cursor = current;
+
+        if (!List.of(
+                TokenType.IDENT,
+                TokenType.INT_LIT, TokenType.DOUBLE_LIT,
+                TokenType.STRING_LIT, TokenType.CHAR_LIT,
+                TokenType.BOOL_TRUE_LIT, TokenType.BOOL_FALSE_LIT
+        ).contains(peek().type())) {
+            this.current = cursor;
+            return null;
+        }
+
+        Token term = advance();
+
+        return new Expr.TermExpr(term);
+    }
+
+    private Expr groupExpr() {
+        int cursor = current;
+
+        if (peek().type() != TokenType.LPAREN)
+            return null;
+
+        advance();
+
+        Expr group = expr();
+
+        if (peek().type() != TokenType.RPAREN || group == null) {
+            this.current = cursor;
+            return null;
+        }
+
+        advance();
+
+        return new Expr.GroupExpr(group);
+    }
+
+    private Expr functionCall() {
+        int cursor = current;
+
+        if (peek().type() != TokenType.IDENT)
+            return null;
+
+        Token ident = advance();
+
+        if  (peek().type() != TokenType.LPAREN) {
+            this.current = cursor;
+            return null;
+        }
+
+        advance();
+
+        List<Expr> args = new LinkedList<>();
+
+        Expr arg = expr();
+
+        if (arg != null)
+            args.add(arg);
+
+        while (arg != null && peek().type() == TokenType.SEP_COMMA) {
+            advance();
+
+            arg = expr();
+            if (arg == null) {
+                this.current = cursor;
+                return null;
+            }
+
+            args.add(arg);
+        }
+
+        if (peek().type() != TokenType.RPAREN) {
+            this.current = cursor;
+            return null;
+        }
+
+        advance();
+
+        return new Expr.FunctionalCall(ident, args);
+    }
+
 }
