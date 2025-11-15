@@ -15,6 +15,16 @@ public final class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    private String errorMessage = null;
+    private Token errorToken = null;
+
+    private void setMessage(String message) {
+        if (errorMessage == null) {
+            errorMessage = message;
+            errorToken = peek();
+        }
+    }
+
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
@@ -77,17 +87,31 @@ public final class Parser {
     }
 
     // ----- ENTRY POINT -----
-    public Program parse() {
+    public ParserOutput parse() {
         List<Stmt> statements = new LinkedList<>();
 
         Stmt stmt = null;
         while ((stmt = statement()) != null)
             statements.add(stmt);
 
-        if (!isAtEnd() || peek().type() != TokenType.EOF)
-            return null; // program must end with EOF!!!!
+        if (!isAtEnd() || peek().type() != TokenType.EOF) {
+            setMessage("Ocekuje se EOF");
+            return new ParserOutput(null, errorMessage, errorToken);
+        }
 
-        return new Program(statements);
+        return new ParserOutput(new Program(statements), errorMessage, errorToken);
+    }
+
+    public static class ParserOutput {
+        public Program program;
+        public String errorMessage;
+        public Token errorToken;
+
+        public ParserOutput(Program program, String errorMessage, Token errorToken) {
+            this.program = program;
+            this.errorMessage = errorMessage;
+            this.errorToken = errorToken;
+        }
     }
 
     private boolean isType(Token token) {
@@ -124,6 +148,7 @@ public final class Parser {
             return null;
 
         if (advance().type() != TokenType.SEP_EX) {
+            setMessage("Iskaz mora da se zavrsi \"!\"");
             this.current = cursor;
             return null;
         }
@@ -156,6 +181,7 @@ public final class Parser {
             logicalAndExpr = logicalAndExpr();
 
             if (logicalAndExpr == null) {
+                setMessage("Ocekuje se izraz");
                 current = cursor;
                 return null;
             }
@@ -190,6 +216,7 @@ public final class Parser {
             equalityExpr = equalityExpr();
 
             if (equalityExpr == null) {
+                setMessage("Ocekuje se izraz");
                 current = cursor;
                 return null;
             }
@@ -222,6 +249,7 @@ public final class Parser {
             right = relationalExpr();
 
             if (right == null) {
+                setMessage("Ocekuje se izraz");
                 this.current = cursor;
                 return null;
             }
@@ -255,6 +283,7 @@ public final class Parser {
             right = additiveExpr();
 
             if (right == null) {
+                setMessage("Ocekuje se izraz");
                 this.current = cursor;
                 return null;
             }
@@ -289,6 +318,7 @@ public final class Parser {
             multiplicativeExpr = multiplicativeExpr();
 
             if (multiplicativeExpr == null) {
+                setMessage("Ocekuje se izraz");
                 current = cursor;
                 return null;
             }
@@ -327,6 +357,7 @@ public final class Parser {
             unary = unaryExpr();
 
             if (unary == null) {
+                setMessage("Ocekuje se izraz");
                 current = cursor;
                 return null;
             }
@@ -358,6 +389,9 @@ public final class Parser {
             e = termExpr();
 
         if (e == null) {
+            if (op != null)
+                setMessage("Ocekuje se izraz");
+
             this.current = cursor;
             return null;
         }
@@ -397,6 +431,7 @@ public final class Parser {
         Expr group = expr();
 
         if (peek().type() != TokenType.RPAREN || group == null) {
+            setMessage("Ocekuje se )");
             this.current = cursor;
             return null;
         }
@@ -433,6 +468,7 @@ public final class Parser {
 
             arg = expr();
             if (arg == null) {
+                setMessage("Ocekivan je izraz nakon zareza");
                 this.current = cursor;
                 return null;
             }
@@ -441,6 +477,7 @@ public final class Parser {
         }
 
         if (peek().type() != TokenType.RPAREN) {
+            setMessage("Ocekuje se )");
             this.current = cursor;
             return null;
         }

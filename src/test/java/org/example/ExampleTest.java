@@ -21,7 +21,7 @@ public class ExampleTest {
 
             // 2. Parsiranje u AST
             Parser parser = new Parser(tokens);
-            Program ast = parser.parse();
+            Program ast = parser.parse().program;
 
             // 3. Generisanje JSON-a
             JsonPrinter printer = new JsonPrinter();
