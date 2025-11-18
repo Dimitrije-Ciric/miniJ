@@ -29,12 +29,6 @@ public final class Parser {
         this.tokens = tokens;
     }
 
-    public static class ParseError extends RuntimeException {
-        public ParseError(String message) {
-            super(message);
-        }
-    }
-
     private Token advance() {
         if (!isAtEnd()) current++;
         return previous();
@@ -73,19 +67,6 @@ public final class Parser {
         return null;
     }
 
-    private Token consume(TokenType type) {
-        if (check(type)) return advance();
-        return null;
-    }
-
-    private ParseError error(Token token, String message) {
-        return new ParseError("Parse error at '" + token.lexeme() + "': " + message);
-    }
-
-    private boolean checkNext(TokenType type) {
-        if (current + 1 >= tokens.size()) return false;
-        return tokens.get(current + 1).type() == type;
-    }
 
     public ParserOutput parse() {
         List<Stmt> statements = new LinkedList<>();
@@ -118,14 +99,6 @@ public final class Parser {
         String lexeme = token.lexeme();
         return lexeme.equals("intJ") || lexeme.equals("doubleJ") || lexeme.equals("charJ")
                 || lexeme.equals("boolJ") || lexeme.equals("stringJ") || lexeme.equals("arrayJ");
-    }
-
-    private boolean check(TokenType... types) {
-        if (isAtEnd()) return false;
-        for (TokenType type : types) {
-            if (peek().type() == type) return true;
-        }
-        return false;
     }
 
     private Stmt statement() {
@@ -268,7 +241,7 @@ public final class Parser {
                 current = cursor;
                 return null;
             }
-            init = new Stmt.VarDecl(type, name, value);
+            init = new Stmt.VarDecl(type, null, name, value);
         } else if (peek().type() == TokenType.IDENT) {
             Token name = advance();
             if (consume(TokenType.ASSIGN, "Očekuje se '=' nakon imena varijable") == null) {
@@ -286,7 +259,7 @@ public final class Parser {
                 current = cursor;
                 return null;
             }
-            init = new Stmt.VarAssign(name, value);
+            init = new Stmt.VarAssign(name, null, value);
         }
 
         Expr condition = expr();
@@ -329,7 +302,7 @@ public final class Parser {
 
     private Stmt forIncrement() {
         if (peek().type() != TokenType.IDENT)
-            return new Stmt.VarAssign(null, null);
+            return new Stmt.VarAssign(null, null,null);
 
         int cursor = current;
         Token name = advance();
@@ -347,7 +320,7 @@ public final class Parser {
             return null;
         }
 
-        return new Stmt.VarAssign(name, value);
+        return new Stmt.VarAssign(name, null, value);
     }
 
     private Stmt whileStatment() {
@@ -455,6 +428,23 @@ public final class Parser {
         if (peek().type() != TokenType.IDENT) return null;
         int cursor = current;
         Token name = advance();
+
+        Token arrayIndex = null;
+
+        if (peek().type() == TokenType.LBRACKET) {
+            advance();
+            if (peek().type() != TokenType.INT_LIT && peek().type() != TokenType.IDENT) {
+                setMessage("Ocekuje se broj");
+                current = cursor;
+                return null;
+            }
+            arrayIndex = advance();
+            if (consume(TokenType.RBRACKET, "Ocekuje se ]") == null) {
+                current = cursor;
+                return null;
+            }
+        }
+
         if (!match(TokenType.ASSIGN)) {
             current = cursor;
             return null;
@@ -471,13 +461,33 @@ public final class Parser {
             return null;
         }
 
-        return new Stmt.VarAssign(name, value);
+        return new Stmt.VarAssign(name, arrayIndex, value);
     }
 
     private Stmt varDecl() {
         int cursor = current;
         if (!isType(peek())) return null;
         Token type = advance();
+
+        Token arrayLength = null;
+
+        if (type.type() == TokenType.ARRAY) {
+            if (consume(TokenType.LBRACKET, "Ocekuje se [") == null) {
+                current = cursor;
+                return null;
+            }
+            if (peek().type() != TokenType.INT_LIT && peek().type() != TokenType.IDENT) {
+                setMessage("Ocekuje se broj");
+                current = cursor;
+                return null;
+            }
+            arrayLength = advance();
+            if (consume(TokenType.RBRACKET, "Ocekuje se ]") == null) {
+                current = cursor;
+                return null;
+            }
+        }
+
         Token name = consume(TokenType.IDENT, "Očekuje se identifikator");
         if (name == null) {
             current = cursor;
@@ -495,7 +505,7 @@ public final class Parser {
             current = cursor;
             return null;
         }
-        return new Stmt.VarDecl(type, name, init);
+        return new Stmt.VarDecl(type, arrayLength, name, init);
     }
 
     private Stmt exprStmt() {
@@ -776,7 +786,23 @@ public final class Parser {
 
         Token term = advance();
 
-        return new Expr.TermExpr(term);
+        Token arrayIndex = null;
+
+        if (term.type() == TokenType.IDENT && peek().type() == TokenType.LBRACKET) {
+            advance();
+            if (peek().type() != TokenType.INT_LIT && peek().type() != TokenType.IDENT) {
+                setMessage("Ocekuje se broj");
+                current = cursor;
+                return null;
+            }
+            arrayIndex = advance();
+            if (consume(TokenType.RBRACKET, "Ocekuje se ]") == null) {
+                current = cursor;
+                return null;
+            }
+        }
+
+        return new Expr.TermExpr(term, arrayIndex);
     }
 
     private Expr groupExpr() {

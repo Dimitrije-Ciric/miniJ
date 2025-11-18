@@ -121,10 +121,12 @@ public abstract class Expr implements VisitorAccept {
     public static final class TermExpr extends Expr {
 
         public Token term;
+        public Token arrayIndex;
 
-        public TermExpr(Token term) {
+        public TermExpr(Token term, Token arrayIndex) {
             super();
             this.term = term;
+            this.arrayIndex = arrayIndex;
         }
 
         @Override

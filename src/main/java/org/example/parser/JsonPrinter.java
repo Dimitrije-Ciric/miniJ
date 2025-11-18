@@ -161,6 +161,9 @@ public class JsonPrinter implements Visitor<JsonNode> {
 
         o.put("term", termExpr.term.lexeme());
 
+        if (termExpr.arrayIndex != null)
+            o.put("array_index", termExpr.arrayIndex.lexeme());
+
         return o;
     }
 
@@ -195,6 +198,8 @@ public class JsonPrinter implements Visitor<JsonNode> {
     public JsonNode visitVarDecl(Stmt.VarDecl varDecl) {
         ObjectNode o = M.createObjectNode();
         o.put("type", "var_decl");
+        if (varDecl.arrayLength != null)
+            o.put("array_length", varDecl.arrayLength.lexeme());
         o.put("var_type", varDecl.type.lexeme());
         o.put("name", varDecl.name.lexeme());
         if (varDecl.init != null) {
@@ -297,6 +302,8 @@ public class JsonPrinter implements Visitor<JsonNode> {
         o.put("type", "var_assign");
         o.put("name", varAssign.name.lexeme());
         o.set("value", varAssign.value.accept(this));
+        if (varAssign.arrayIndex != null)
+            o.put("array_index", varAssign.arrayIndex.lexeme());
         return o;
     }
 }

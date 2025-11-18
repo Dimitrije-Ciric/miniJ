@@ -1,0 +1,13 @@
+arrayJ[5] niz!
+niz[0] = 1!
+niz[1] = 2!
+niz[2] = 3!
+niz[3] = 4!
+niz[4] = 5!
+intJ sum = 0!
+
+forJ(intJ i = 0! i < 5! i = i + 1){
+    sum = sum + niz[i]!
+}
+
+print(sum)!

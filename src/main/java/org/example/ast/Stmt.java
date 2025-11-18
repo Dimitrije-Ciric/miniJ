@@ -23,12 +23,13 @@ public abstract class Stmt implements VisitorAccept {
     }
 
     public static class VarDecl extends Stmt {
-        public Token type, name;
+        public Token type, arrayLength, name;
         public Expr init;
 
-        public VarDecl(Token type, Token name, Expr init) {
+        public VarDecl(Token type, Token arrayLength, Token name, Expr init) {
             super();
             this.type = type;
+            this.arrayLength = arrayLength;
             this.name = name;
             this.init = init;
         }
@@ -41,12 +42,14 @@ public abstract class Stmt implements VisitorAccept {
 
     public static class VarAssign extends Stmt {
         public Token name;
+        public Token arrayIndex;
         public Expr value;
 
-        public VarAssign(Token name, Expr value) {
+        public VarAssign(Token name, Token arrayIndex, Expr value) {
             super();
 
             this.name = name;
+            this.arrayIndex = arrayIndex;
             this.value = value;
         }
 
