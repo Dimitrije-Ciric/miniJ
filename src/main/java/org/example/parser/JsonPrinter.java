@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.ast.*;
+import org.example.lexer.Token;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JsonPrinter implements Visitor<JsonNode> {
     private static final ObjectMapper M = new ObjectMapper();
@@ -187,6 +188,111 @@ public class JsonPrinter implements Visitor<JsonNode> {
 
         o.set("args", args);
 
+        return o;
+    }
+
+    @Override
+    public JsonNode visitVarDecl(Stmt.VarDecl varDecl) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "var_decl");
+        o.put("var_type", varDecl.type.lexeme());
+        o.put("name", varDecl.name.lexeme());
+        if (varDecl.init != null) {
+            o.set("init", varDecl.init.accept(this));
+        }
+        return o;
+    }
+
+
+    @Override
+    public JsonNode visitIfStmt(Stmt.IfStmt ifStmt) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "if_stmt");
+        o.set("condition", ifStmt.condition.accept(this));
+
+        ArrayNode thenBranch = M.createArrayNode();
+        for (Stmt stmt : ifStmt.ifBranch) thenBranch.add(stmt.accept(this));
+        o.set("then_branch", thenBranch);
+
+        ArrayNode elseIfBranches = M.createArrayNode();
+        for (Stmt.ElseIfStmt elseif : ifStmt.elseIfBranch) {
+            ObjectNode elseifNode = M.createObjectNode();
+            elseifNode.set("condition", elseif.condition.accept(this));
+            ArrayNode body = M.createArrayNode();
+            for (Stmt stmt : elseif.body) body.add(stmt.accept(this));
+            elseifNode.set("body", body);
+            elseIfBranches.add(elseifNode);
+        }
+        o.set("elseif_branches", elseIfBranches);
+
+        ArrayNode elseBranch = M.createArrayNode();
+        for (Stmt stmt : ifStmt.elseBranch) elseBranch.add(stmt.accept(this));
+        o.set("else_branch", elseBranch);
+
+        return o;
+    }
+
+    @Override
+    public JsonNode visitWhileStmt(Stmt.WhileStmt whileStmt) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "while_stmt");
+        o.set("condition", whileStmt.condition.accept(this));
+        ArrayNode body = M.createArrayNode();
+        for (Stmt stmt : whileStmt.body) body.add(stmt.accept(this));
+        o.set("body", body);
+        return o;
+    }
+
+    @Override
+    public JsonNode visitForStmt(Stmt.ForStmt forStmt) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "for_stmt");
+        o.set("init", forStmt.init.accept(this));
+        o.set("condition", forStmt.condition.accept(this));
+        o.set("increment", forStmt.increment.accept(this));
+        ArrayNode body = M.createArrayNode();
+        for (Stmt stmt : forStmt.body) body.add(stmt.accept(this));
+        o.set("body", body);
+        return o;
+    }
+
+    @Override
+    public JsonNode visitReturnStmt(Stmt.ReturnStmt returnStmt) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "return_stmt");
+        o.set("expr", returnStmt.expr.accept(this));
+        return o;
+    }
+
+    @Override
+    public JsonNode visitFuncDeclStmt(Stmt.FuncDecl funcDecl) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "func_decl");
+        o.put("return_type", funcDecl.type.lexeme());
+        o.put("name", funcDecl.name.lexeme());
+
+        ArrayNode params = M.createArrayNode();
+        for (Stmt.Param t : funcDecl.params) {
+            Map<String, String> paramObj = new HashMap<>();
+            paramObj.put("type", t.type.lexeme());
+            paramObj.put("name", t.name.lexeme());
+            params.add((JsonNode) paramObj);
+        }
+        o.set("params", params);
+
+        ArrayNode body = M.createArrayNode();
+        for (Stmt stmt : funcDecl.body) body.add(stmt.accept(this));
+        o.set("body", body);
+
+        return o;
+    }
+
+    @Override
+    public JsonNode visitVarAssign(Stmt.VarAssign varAssign) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "var_assign");
+        o.put("name", varAssign.name.lexeme());
+        o.set("value", varAssign.value.accept(this));
         return o;
     }
 }

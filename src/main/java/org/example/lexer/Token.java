@@ -6,7 +6,7 @@ import lombok.Builder;
 public record Token(TokenType type, String lexeme, int line, int colStart, int colEnd) {
     public Object literal() {
         return switch (type) {
-            case INT_LIT -> Double.valueOf(lexeme);
+            case INT_LIT -> Integer.valueOf(lexeme);
             case DOUBLE_LIT -> Double.valueOf(lexeme);
             case BOOL_TRUE_LIT -> true;
             case BOOL_FALSE_LIT -> false;

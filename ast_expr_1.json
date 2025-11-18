@@ -1,0 +1,117 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "logical_or_expr",
+      "expr" : [ {
+        "type" : "logical_and_expr",
+        "expr" : [ {
+          "type" : "equality_expr",
+          "left_expr" : {
+            "type" : "multiplicative_expr",
+            "expr" : [ {
+              "type" : "unary_expr",
+              "unary_op" : "+",
+              "expr" : {
+                "type" : "term_expr",
+                "term" : "10"
+              }
+            }, {
+              "type" : "multiplicative_expr_op",
+              "op" : "*"
+            }, {
+              "type" : "unary_expr",
+              "unary_op" : "-",
+              "expr" : {
+                "type" : "term_expr",
+                "term" : "13"
+              }
+            }, {
+              "type" : "multiplicative_expr_op",
+              "op" : "/"
+            }, {
+              "type" : "term_expr",
+              "term" : "5"
+            } ]
+          },
+          "op" : "==",
+          "right_expr" : {
+            "type" : "term_expr",
+            "term" : "10"
+          }
+        }, {
+          "type" : "term_expr",
+          "term" : "false"
+        } ]
+      }, {
+        "type" : "logical_and_expr",
+        "expr" : [ {
+          "type" : "equality_expr",
+          "left_expr" : {
+            "type" : "additive_expr",
+            "expr" : [ {
+              "type" : "term_expr",
+              "term" : "10"
+            }, {
+              "type" : "additive_expr_op",
+              "op" : "+"
+            }, {
+              "type" : "multiplicative_expr",
+              "expr" : [ {
+                "type" : "term_expr",
+                "term" : "3"
+              }, {
+                "type" : "multiplicative_expr_op",
+                "op" : "*"
+              }, {
+                "type" : "term_expr",
+                "term" : "5"
+              } ]
+            }, {
+              "type" : "additive_expr_op",
+              "op" : "-"
+            }, {
+              "type" : "term_expr",
+              "term" : "1"
+            } ]
+          },
+          "op" : "!=",
+          "right_expr" : {
+            "type" : "additive_expr",
+            "expr" : [ {
+              "type" : "term_expr",
+              "term" : "\"aa\""
+            }, {
+              "type" : "additive_expr_op",
+              "op" : "+"
+            }, {
+              "type" : "term_expr",
+              "term" : "\"cc\""
+            } ]
+          }
+        }, {
+          "type" : "relational_expr",
+          "left_expr" : {
+            "type" : "term_expr",
+            "term" : "10"
+          },
+          "op" : ">=",
+          "right_expr" : {
+            "type" : "additive_expr",
+            "expr" : [ {
+              "type" : "term_expr",
+              "term" : "sum"
+            }, {
+              "type" : "additive_expr_op",
+              "op" : "-"
+            }, {
+              "type" : "term_expr",
+              "term" : "1"
+            } ]
+          }
+        } ]
+      } ]
+    }
+  } ]
+}

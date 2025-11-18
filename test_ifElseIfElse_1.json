@@ -1,0 +1,56 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "if_stmt",
+    "condition" : {
+      "type" : "relational_expr",
+      "left_expr" : {
+        "type" : "term_expr",
+        "term" : "x"
+      },
+      "op" : ">",
+      "right_expr" : {
+        "type" : "term_expr",
+        "term" : "0"
+      }
+    },
+    "then_branch" : [ {
+      "type" : "var_assign",
+      "name" : "x",
+      "value" : {
+        "type" : "term_expr",
+        "term" : "1"
+      }
+    } ],
+    "elseif_branches" : [ {
+      "condition" : {
+        "type" : "equality_expr",
+        "left_expr" : {
+          "type" : "term_expr",
+          "term" : "x"
+        },
+        "op" : "==",
+        "right_expr" : {
+          "type" : "term_expr",
+          "term" : "0"
+        }
+      },
+      "body" : [ {
+        "type" : "var_assign",
+        "name" : "x",
+        "value" : {
+          "type" : "term_expr",
+          "term" : "2"
+        }
+      } ]
+    } ],
+    "else_branch" : [ {
+      "type" : "var_assign",
+      "name" : "x",
+      "value" : {
+        "type" : "term_expr",
+        "term" : "3"
+      }
+    } ]
+  } ]
+}

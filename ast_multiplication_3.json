@@ -1,0 +1,19 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "multiplicative_expr",
+      "expr" : [ {
+        "type" : "term_expr",
+        "term" : "sum"
+      }, {
+        "type" : "multiplicative_expr_op",
+        "op" : "%"
+      }, {
+        "type" : "term_expr",
+        "term" : "2"
+      } ]
+    }
+  } ]
+}

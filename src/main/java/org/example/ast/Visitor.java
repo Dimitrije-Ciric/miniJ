@@ -16,4 +16,17 @@ public interface Visitor<R> {
     R visitGroupExpr(Expr.GroupExpr group);
     R visitFunctionalCall(Expr.FunctionalCall functionalCall);
 
+    R visitVarDecl(Stmt.VarDecl varDecl);
+
+    R visitIfStmt(Stmt.IfStmt ifStmt);
+
+    R visitWhileStmt(Stmt.WhileStmt whileStmt);
+
+    R visitForStmt(Stmt.ForStmt forStmt);
+
+    R visitReturnStmt(Stmt.ReturnStmt returnStmt);
+
+    R visitFuncDeclStmt(Stmt.FuncDecl funcDecl);
+
+    R visitVarAssign(Stmt.VarAssign varAssign);
 }

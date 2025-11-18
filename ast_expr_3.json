@@ -1,0 +1,17 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "functional_call",
+      "function_name" : "sum",
+      "args" : [ {
+        "type" : "term_expr",
+        "term" : "a"
+      }, {
+        "type" : "term_expr",
+        "term" : "b"
+      } ]
+    }
+  } ]
+}

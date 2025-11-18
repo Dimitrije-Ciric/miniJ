@@ -86,7 +86,6 @@ public final class Parser {
         return tokens.get(current + 1).type() == type;
     }
 
-    // ----- ENTRY POINT -----
     public ParserOutput parse() {
         List<Stmt> statements = new LinkedList<>();
 
@@ -120,7 +119,6 @@ public final class Parser {
                 || lexeme.equals("boolJ") || lexeme.equals("stringJ") || lexeme.equals("arrayJ");
     }
 
-    // ----- STATEMENTS -----
     private boolean check(TokenType... types) {
         if (isAtEnd()) return false;
         for (TokenType type : types) {
@@ -130,13 +128,166 @@ public final class Parser {
     }
 
     private Stmt statement() {
-        Stmt stmt = exprStmt();
+        if(checkTypeAheadFuncDecl()) return funcDecl();
 
-//        if (stmt == null && match(TokenType.IF)) return ifStatement();
-//        if (stmt == null && match(TokenType.WHILE)) return whileStatement();
-//        if (stmt == null && match(TokenType.FOR)) return forStatement();
+        Stmt stmt = varDecl();
+        if(stmt != null) return stmt;
 
-        return stmt;
+        stmt = varAssign();
+        if(stmt != null) return stmt;
+
+        if(match(TokenType.IF)) return ifStatment();
+        if(match(TokenType.WHILE)) return whileStatment();
+        if(match(TokenType.FOR)) return forStatment();
+        if(check(TokenType.RET)) return retStatment();
+
+        return exprStmt();
+    }
+
+    private boolean checkTypeAheadFuncDecl() {
+        if (!isType(peek())) return false;
+        if (current + 1 >= tokens.size()) return false;
+        Token next = tokens.get(current + 1);
+        return next.type() == TokenType.IDENT
+                && current + 2 < tokens.size()
+                && tokens.get(current + 2).type() == TokenType.LPAREN;
+    }
+
+    private List<Stmt> parseBlock() {
+        List<Stmt> statements = new LinkedList<>();
+        while (!check(TokenType.END) && !isAtEnd()) {
+            Stmt stmt = statement();
+            if (stmt != null) statements.add(stmt);
+        }
+        consume(TokenType.END, "Očekuje se '}'");
+        return statements;
+    }
+
+    private Stmt funcDecl() {
+        Token type = advance();
+        Token name = consume(TokenType.IDENT, "Očekuje se ime funkcije");
+        consume(TokenType.LPAREN, "Očekuje se '('");
+        List<Stmt.Param> params = parseParamList();
+        consume(TokenType.RPAREN, "Očekuje se ')'");
+        consume(TokenType.BEGIN, "Očekuje se '{'");
+        List<Stmt> body = parseBlock();
+        return new Stmt.FuncDecl(type, name, params, body);
+    }
+
+    private List<Stmt.Param> parseParamList() {
+        List<Stmt.Param> params = new LinkedList<>();
+        while (isType(peek())) {
+            Token type = advance();
+            Token name = consume(TokenType.IDENT, "Očekuje se identifikator parametra");
+            params.add(new Stmt.Param(type, name));
+            if (!match(TokenType.SEP_COMMA)) break;
+        }
+        return params;
+    }
+
+    private Stmt retStatment() {
+        consume(TokenType.RET, "Očekuje se 'return'");
+        Expr value = expr();
+        consume(TokenType.SEP_EX, "Iskaz mora da se završi '!'");
+        return new Stmt.ReturnStmt(value);
+    }
+
+    private Stmt forStatment() {
+        consume(TokenType.LPAREN, "Očekuje se '('");
+
+        Stmt init = null;
+        if (isType(peek())) {
+            Token type = advance();
+            Token name = consume(TokenType.IDENT, "Očekuje se identifikator");
+            Expr value = null;
+            if (match(TokenType.ASSIGN)) value = expr();
+            consume(TokenType.SEP_EX, "Očekuje se '!' nakon inicijalizacije");
+            init = new Stmt.VarDecl(type, name, value);
+        } else if (peek().type() == TokenType.IDENT) {
+            Token name = advance();
+            consume(TokenType.ASSIGN, "Očekuje se '=' nakon imena varijable");
+            Expr value = expr();
+            consume(TokenType.SEP_EX, "Očekuje se '!' nakon inicijalizacije");
+            init = new Stmt.VarAssign(name, value);
+        }
+
+        Expr condition = expr();
+        consume(TokenType.SEP_EX, "Očekuje se '!' nakon uslova");
+
+        Stmt increment = forIncrement();
+
+        consume(TokenType.RPAREN, "Očekuje se ')' nakon inkrementa");
+
+        consume(TokenType.BEGIN, "Očekuje se '{'");
+        List<Stmt> body = parseBlock();
+
+        return new Stmt.ForStmt(init, condition, increment, body);
+    }
+
+    private Stmt forIncrement() {
+        if (peek().type() != TokenType.IDENT) return null;
+        int cursor = current;
+        Token name = advance();
+        if (!match(TokenType.ASSIGN)) {
+            current = cursor;
+            Expr incrExpr = expr();
+            if (incrExpr != null) return new Stmt.ExprStmt(incrExpr);
+            return null;
+        }
+        Expr value = expr();
+        return new Stmt.VarAssign(name, value);
+    }
+
+    private Stmt whileStatment() {
+        consume(TokenType.LPAREN, "Očekuje se '('");
+        Expr condition = expr();
+        consume(TokenType.RPAREN, "Očekuje se ')'");
+        consume(TokenType.BEGIN, "Očekuje se '{'");
+        List<Stmt> body = parseBlock();
+        return new Stmt.WhileStmt(condition, body);
+    }
+
+    private Stmt ifStatment() {
+        consume(TokenType.LPAREN, "Očekuje se '('");
+        Expr condition = expr();
+        consume(TokenType.RPAREN, "Očekuje se ')'");
+        consume(TokenType.BEGIN, "Očekuje se '{'");
+        List<Stmt> ifBranch = parseBlock();
+        List<Stmt.ElseIfStmt> elseIfs = new LinkedList<>();
+        while (match(TokenType.ELSEIF)) {
+            consume(TokenType.LPAREN, "Očekuje se '('");
+            Expr elseifCond = expr();
+            consume(TokenType.RPAREN, "Očekuje se ')'");
+            consume(TokenType.BEGIN, "Očekuje se '{'");
+            List<Stmt> elseifBody = parseBlock();
+            elseIfs.add(new Stmt.ElseIfStmt(elseifCond, elseifBody));
+        }
+        List<Stmt> elseBranch = new LinkedList<>();
+        if (match(TokenType.ELSE)) {
+            consume(TokenType.BEGIN, "Očekuje se '{'");
+            elseBranch = parseBlock();
+        }
+        return new Stmt.IfStmt(condition, ifBranch, elseIfs, elseBranch);
+    }
+
+    private Stmt varAssign() {
+        if (peek().type() != TokenType.IDENT) return null;
+        int cursor = current;
+        Token name = advance();
+        if (!match(TokenType.ASSIGN)) { current = cursor; return null; }
+        Expr value = expr();
+        consume(TokenType.SEP_EX, "Iskaz mora da se završi '!'");
+        return new Stmt.VarAssign(name, value);
+    }
+
+    private Stmt varDecl() {
+        if (!isType(peek())) return null;
+        Token type = advance();
+        Token name = consume(TokenType.IDENT, "Očekuje se identifikator");
+        Expr init = null;
+        if (match(TokenType.ASSIGN)) init = expr();
+        consume(TokenType.SEP_EX, "Iskaz mora da se završi '!'");
+        return new Stmt.VarDecl(type, name, init);
     }
 
     private Stmt exprStmt() {

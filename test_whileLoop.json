@@ -1,0 +1,35 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "while_stmt",
+    "condition" : {
+      "type" : "relational_expr",
+      "left_expr" : {
+        "type" : "term_expr",
+        "term" : "x"
+      },
+      "op" : "<",
+      "right_expr" : {
+        "type" : "term_expr",
+        "term" : "10"
+      }
+    },
+    "body" : [ {
+      "type" : "var_assign",
+      "name" : "x",
+      "value" : {
+        "type" : "additive_expr",
+        "expr" : [ {
+          "type" : "term_expr",
+          "term" : "x"
+        }, {
+          "type" : "additive_expr_op",
+          "op" : "+"
+        }, {
+          "type" : "term_expr",
+          "term" : "1"
+        } ]
+      }
+    } ]
+  } ]
+}

@@ -1,0 +1,19 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "if_stmt",
+    "condition" : {
+      "type" : "term_expr",
+      "term" : "true"
+    },
+    "then_branch" : [ ],
+    "elseif_branches" : [ {
+      "condition" : {
+        "type" : "term_expr",
+        "term" : "false"
+      },
+      "body" : [ ]
+    } ],
+    "else_branch" : [ ]
+  } ]
+}
