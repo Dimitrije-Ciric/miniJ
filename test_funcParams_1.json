@@ -1,0 +1,31 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "func_decl",
+    "return_type" : "intJ",
+    "name" : "add",
+    "params" : [ {
+      "type" : "intJ",
+      "name" : "a"
+    }, {
+      "type" : "intJ",
+      "name" : "b"
+    } ],
+    "body" : [ {
+      "type" : "return_stmt",
+      "expr" : {
+        "type" : "additive_expr",
+        "expr" : [ {
+          "type" : "term_expr",
+          "term" : "a"
+        }, {
+          "type" : "additive_expr_op",
+          "op" : "+"
+        }, {
+          "type" : "term_expr",
+          "term" : "b"
+        } ]
+      }
+    } ]
+  } ]
+}

@@ -127,8 +127,8 @@
 
         @Test
         void testFunctionParamsWithTypes() {
-            String code1 = "fun add(int a, float b, string name) { return a + b! }";
-            String code2 = "fun hello() { return \"Hi\"! }";
+            String code1 = "intJ add(intJ a, intJ b) { return a + b! }";
+            String code2 = "stringJ hello() { return \"Hi\"! }";
 
             generateJsonFile(code1, "test_funcParams_1.json");
             generateJsonFile(code2, "test_funcParams_2.json");

@@ -271,17 +271,21 @@ public class JsonPrinter implements Visitor<JsonNode> {
         o.put("return_type", funcDecl.type.lexeme());
         o.put("name", funcDecl.name.lexeme());
 
+        // params
         ArrayNode params = M.createArrayNode();
         for (Stmt.Param t : funcDecl.params) {
-            Map<String, String> paramObj = new HashMap<>();
+            ObjectNode paramObj = M.createObjectNode();
             paramObj.put("type", t.type.lexeme());
             paramObj.put("name", t.name.lexeme());
-            params.add((JsonNode) paramObj);
+            params.add(paramObj);
         }
         o.set("params", params);
 
+        // body
         ArrayNode body = M.createArrayNode();
-        for (Stmt stmt : funcDecl.body) body.add(stmt.accept(this));
+        for (Stmt stmt : funcDecl.body) {
+            body.add(stmt.accept(this));
+        }
         o.set("body", body);
 
         return o;

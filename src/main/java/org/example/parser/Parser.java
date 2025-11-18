@@ -148,9 +148,9 @@ public final class Parser {
         if (!isType(peek())) return false;
         if (current + 1 >= tokens.size()) return false;
         Token next = tokens.get(current + 1);
-        return next.type() == TokenType.IDENT
-                && current + 2 < tokens.size()
-                && tokens.get(current + 2).type() == TokenType.LPAREN;
+        if (next.type() != TokenType.IDENT) return false;
+        if (current + 2 >= tokens.size()) return false;
+        return tokens.get(current + 2).type() == TokenType.LPAREN;
     }
 
     private List<Stmt> parseBlock() {
