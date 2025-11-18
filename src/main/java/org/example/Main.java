@@ -37,7 +37,7 @@ public class Main {
             }
             else {
                 JsonPrinter printer = new JsonPrinter();
-                printer.print(p.program);
+                System.out.println(printer.print(p.program));
             }
 
         } catch (Exception e) {
