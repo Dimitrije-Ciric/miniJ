@@ -1,0 +1,8 @@
+boolJ x = true!
+
+ifJ(not x){
+    print("false")!
+}
+elseJ{
+    print("true")!
+}

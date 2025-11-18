@@ -1,0 +1,16 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "func_decl",
+    "return_type" : "stringJ",
+    "name" : "hello",
+    "params" : [ ],
+    "body" : [ {
+      "type" : "return_stmt",
+      "expr" : {
+        "type" : "term_expr",
+        "term" : "\"Hi\""
+      }
+    } ]
+  } ]
+}

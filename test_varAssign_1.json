@@ -1,0 +1,11 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "var_assign",
+    "name" : "x",
+    "value" : {
+      "type" : "term_expr",
+      "term" : "10"
+    }
+  } ]
+}

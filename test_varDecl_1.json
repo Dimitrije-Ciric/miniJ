@@ -1,0 +1,12 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "var_decl",
+    "var_type" : "intJ",
+    "name" : "x",
+    "init" : {
+      "type" : "term_expr",
+      "term" : "5"
+    }
+  } ]
+}

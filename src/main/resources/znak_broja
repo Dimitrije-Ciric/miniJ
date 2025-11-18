@@ -1,0 +1,11 @@
+intJ n = read()!
+
+ifJ(n > 0){
+    print("pozitivan")!
+}
+elseifJ(n < 0){
+    print("negativan")!
+}
+elseifJ(n == 0){
+    print("nula")!
+}

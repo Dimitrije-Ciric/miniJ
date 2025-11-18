@@ -1,0 +1,4 @@
+intJ a = read()!
+intJ b = read()!
+intJ c = a + b!
+print(c)!

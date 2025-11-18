@@ -1,0 +1,22 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "group_expr",
+      "expr" : {
+        "type" : "additive_expr",
+        "expr" : [ {
+          "type" : "term_expr",
+          "term" : "1"
+        }, {
+          "type" : "additive_expr_op",
+          "op" : "+"
+        }, {
+          "type" : "term_expr",
+          "term" : "2"
+        } ]
+      }
+    }
+  } ]
+}

@@ -1,0 +1,10 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "return_stmt",
+    "expr" : {
+      "type" : "term_expr",
+      "term" : "5"
+    }
+  } ]
+}

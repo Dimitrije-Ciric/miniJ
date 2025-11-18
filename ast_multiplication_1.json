@@ -1,0 +1,27 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "multiplicative_expr",
+      "expr" : [ {
+        "type" : "unary_expr",
+        "unary_op" : "+",
+        "expr" : {
+          "type" : "term_expr",
+          "term" : "10"
+        }
+      }, {
+        "type" : "multiplicative_expr_op",
+        "op" : "*"
+      }, {
+        "type" : "unary_expr",
+        "unary_op" : "-",
+        "expr" : {
+          "type" : "term_expr",
+          "term" : "13"
+        }
+      } ]
+    }
+  } ]
+}

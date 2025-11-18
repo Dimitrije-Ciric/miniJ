@@ -1,0 +1,8 @@
+intJ x = read()!
+
+ifJ(x % 2 == 0){
+    print("paran")!
+}
+elseJ{
+    print("neparan")!
+}

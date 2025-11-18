@@ -1,0 +1,8 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "var_decl",
+    "var_type" : "doubleJ",
+    "name" : "y"
+  } ]
+}

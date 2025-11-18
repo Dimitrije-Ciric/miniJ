@@ -1,0 +1,55 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "for_stmt",
+    "init" : {
+      "type" : "var_decl",
+      "var_type" : "intJ",
+      "name" : "i",
+      "init" : {
+        "type" : "term_expr",
+        "term" : "0"
+      }
+    },
+    "condition" : {
+      "type" : "relational_expr",
+      "left_expr" : {
+        "type" : "term_expr",
+        "term" : "i"
+      },
+      "op" : "<",
+      "right_expr" : {
+        "type" : "term_expr",
+        "term" : "5"
+      }
+    },
+    "increment" : {
+      "type" : "var_assign",
+      "name" : "i",
+      "value" : {
+        "type" : "additive_expr",
+        "expr" : [ {
+          "type" : "term_expr",
+          "term" : "i"
+        }, {
+          "type" : "additive_expr_op",
+          "op" : "+"
+        }, {
+          "type" : "term_expr",
+          "term" : "1"
+        } ]
+      }
+    },
+    "body" : [ {
+      "type" : "expr_stmt",
+      "expr" : {
+        "type" : "functional_call",
+        "function_name" : "print",
+        "args" : [ {
+          "type" : "term_expr",
+          "term" : "i"
+        } ]
+      }
+    } ]
+  } ]
+}

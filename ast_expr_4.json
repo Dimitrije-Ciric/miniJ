@@ -1,0 +1,78 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "functional_call",
+      "function_name" : "sum",
+      "args" : [ {
+        "type" : "term_expr",
+        "term" : "a"
+      }, {
+        "type" : "term_expr",
+        "term" : "b"
+      }, {
+        "type" : "logical_and_expr",
+        "expr" : [ {
+          "type" : "equality_expr",
+          "left_expr" : {
+            "type" : "group_expr",
+            "expr" : {
+              "type" : "additive_expr",
+              "expr" : [ {
+                "type" : "multiplicative_expr",
+                "expr" : [ {
+                  "type" : "group_expr",
+                  "expr" : {
+                    "type" : "additive_expr",
+                    "expr" : [ {
+                      "type" : "term_expr",
+                      "term" : "1"
+                    }, {
+                      "type" : "additive_expr_op",
+                      "op" : "+"
+                    }, {
+                      "type" : "term_expr",
+                      "term" : "2"
+                    } ]
+                  }
+                }, {
+                  "type" : "multiplicative_expr_op",
+                  "op" : "/"
+                }, {
+                  "type" : "unary_expr",
+                  "unary_op" : "-",
+                  "expr" : {
+                    "type" : "functional_call",
+                    "function_name" : "sum",
+                    "args" : [ {
+                      "type" : "term_expr",
+                      "term" : "1"
+                    }, {
+                      "type" : "term_expr",
+                      "term" : "2"
+                    } ]
+                  }
+                } ]
+              }, {
+                "type" : "additive_expr_op",
+                "op" : "+"
+              }, {
+                "type" : "term_expr",
+                "term" : "5"
+              } ]
+            }
+          },
+          "op" : "==",
+          "right_expr" : {
+            "type" : "term_expr",
+            "term" : "10"
+          }
+        }, {
+          "type" : "term_expr",
+          "term" : "false"
+        } ]
+      } ]
+    }
+  } ]
+}

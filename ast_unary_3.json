@@ -1,0 +1,14 @@
+{
+  "type" : "program",
+  "statements" : [ {
+    "type" : "expr_stmt",
+    "expr" : {
+      "type" : "unary_expr",
+      "unary_op" : "-",
+      "expr" : {
+        "type" : "term_expr",
+        "term" : "sum"
+      }
+    }
+  } ]
+}

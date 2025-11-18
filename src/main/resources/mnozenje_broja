@@ -1,0 +1,6 @@
+intJ duplo(intJ x){
+    return x * 2!
+}
+
+intJ a = 7!
+print(duplo(a))!
