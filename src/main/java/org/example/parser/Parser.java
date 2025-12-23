@@ -766,7 +766,7 @@ public final class Parser {
         }
 
         if (op == null)
-             return e;
+            return e;
 
         return new Expr.UnaryExpr(op, e);
     }
