@@ -5,6 +5,7 @@ import org.example.lexer.Token;
 import org.example.lexer.TokenFormatter;
 import org.example.parser.JsonPrinter;
 import org.example.parser.Parser;
+import org.example.semantic.SematicAnalyzer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +29,7 @@ public class Main {
             Parser parser = new Parser(tokens);
 
             Parser.ParserOutput p = parser.parse();
+            System.out.println(p);
 
             if (p.program == null) {
                 System.out.println("Error: " + p.errorMessage);
@@ -39,6 +41,10 @@ public class Main {
                 JsonPrinter printer = new JsonPrinter();
                 System.out.println(printer.print(p.program));
             }
+
+            SematicAnalyzer sa = new SematicAnalyzer();
+            p.program.accept(sa);
+            sa.printAnalysis();
 
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());

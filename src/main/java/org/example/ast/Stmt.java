@@ -23,7 +23,9 @@ public abstract class Stmt implements VisitorAccept {
     }
 
     public static class VarDecl extends Stmt {
-        public Token type, arrayLength, name;
+        public Token type;
+        public Token arrayLength;
+        public Token name;
         public Expr init;
 
         public VarDecl(Token type, Token arrayLength, Token name, Expr init) {
