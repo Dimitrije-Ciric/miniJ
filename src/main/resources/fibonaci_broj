@@ -10,7 +10,7 @@ intJ fibonaci(intJ n) {
         return b!
     }
 
-   forJ(intJ a = 2! i <= n! i = i + 1) {
+   forJ(intJ i = 2! i <= n! i = i + 1) {
         c = a + b!
         a = b!
         b = c!
