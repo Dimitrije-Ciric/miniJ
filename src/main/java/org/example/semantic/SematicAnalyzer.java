@@ -306,6 +306,11 @@ public class SematicAnalyzer implements Visitor<Type> {
                 error("For condition must be boolean", null);
         }
 
+        if (forStmt.increment != null) {
+            log("FOR increment: ");
+            forStmt.increment.accept(this);
+        }
+
         forStmt.body.forEach(st -> st.accept(this));
 
         exitScope();
