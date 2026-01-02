@@ -30,6 +30,8 @@ public class BytecodeStaticMethodGenerator {
 
     private Scope scope = new Scope(null);
 
+    private Stack<Type> typeStack = new Stack<>();
+
     @Getter
     private final Symbol methodSymbol;
 
@@ -95,6 +97,15 @@ public class BytecodeStaticMethodGenerator {
                 programBuilder.append(String.format("\tldc %d\n", 0));
                 programBuilder.append(String.format("\tistore %d\n", s.localId));
                 break;
+            case TokenType.STRING:
+                programBuilder.append("\tldc \"\"\n");
+                programBuilder.append(String.format("\tistore %d\n", s.localId));
+                break;
+            case TokenType.DOUBLE:
+                programBuilder.append("\tldc2_w 0.0\n");
+                programBuilder.append(String.format("\tdstore %d\n", s.localId));
+                localsCounter++;
+                break;
         }
     }
 
@@ -104,7 +115,15 @@ public class BytecodeStaticMethodGenerator {
         switch (s.type) {
             case TokenType.INT:
                 programBuilder.append(String.format("\tistore %d\n", s.localId));
+                break;
+            case TokenType.STRING:
+                programBuilder.append(String.format("\tastore %d\n", s.localId));
+                break;
+            case TokenType.DOUBLE:
+                programBuilder.append(String.format("\tdstore %d\n", s.localId));
+                break;
         }
+        typeStack.pop();
     }
 
     public void initVariable(String name) {
@@ -120,67 +139,176 @@ public class BytecodeStaticMethodGenerator {
 
     public void callFunction(String name) {
         if (name.equals("print")) {
-            programBuilder.append("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
-            programBuilder.append("\tbipush 0\n");
+            if (typeStack.peek() == Type.INT)
+                programBuilder.append("\tinvokevirtual java/io/PrintStream/println(I)V\n");
+            else if (typeStack.peek() == Type.DOUBLE)
+                programBuilder.append("\tinvokevirtual java/io/PrintStream/println(D)V\n");
+            else if (typeStack.peek() == Type.STRING)
+                programBuilder.append("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+            typeStack.pop();
+            typeStack.push(Type.VOID);
             return;
         }
 
         Symbol s = scope.resolve(name);
 
+        for (int i = 0; i < s.paramTypes.size(); i++)
+            typeStack.pop();
+
         programBuilder.append(String.format("\tinvokestatic Main/%s(%s)%s\n", s.nameS, s.getSerializedParams(), s.getSerializedReturnType()));
+        typeStack.push(s.returnType);
     }
 
     public void stackPop() {
-        programBuilder.append("\tpop\n");
+
+        if (typeStack.peek() == Type.VOID) {
+            typeStack.pop();
+            return;
+        }
+
+        if (typeStack.peek() == Type.DOUBLE)
+            programBuilder.append("\tpop2\n");
+        else
+            programBuilder.append("\tpop\n");
+
+        typeStack.pop();
     }
 
     public void stackPush(Token term) {
-        if (term.type() == TokenType.INT_LIT)
+        if (term.type() == TokenType.INT_LIT) {
             programBuilder.append(String.format("\tldc %s\n", term.lexeme()));
-        if (term.type() == TokenType.STRING_LIT)
+            typeStack.push(Type.INT);
+        }
+        if (term.type() == TokenType.STRING_LIT) {
             programBuilder.append(String.format("\tldc \"%s\"\n", term.literal()));
+            typeStack.push(Type.STRING);
+        }
+        if (term.type() == TokenType.DOUBLE_LIT) {
+            programBuilder.append(String.format("\tldc2_w %s\n", term.lexeme()));
+            typeStack.push(Type.DOUBLE);
+        }
         if (term.type() == TokenType.IDENT) {
             Symbol s = scope.resolve(term.lexeme());
-            if (s.type == TokenType.INT)
+            if (s.type == TokenType.INT) {
                 programBuilder.append(String.format("\tiload %d\n", s.localId));
-            if (s.type == TokenType.STRING)
+                typeStack.push(Type.INT);
+            }
+            if (s.type == TokenType.STRING) {
                 programBuilder.append(String.format("\taload %d\n", s.localId));
+                typeStack.push(Type.STRING);
+            }
+            if (s.type == TokenType.DOUBLE) {
+                programBuilder.append(String.format("\tdload %d\n", s.localId));
+                typeStack.push(Type.DOUBLE);
+            }
         }
     }
 
     public void stackPeekMultiplyByMinusOne() {
-        programBuilder.append("\tbipush -1\n");
-        programBuilder.append("\timul\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\tbipush -1\n");
+            programBuilder.append("\timul\n");
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tldc2_w -1.0\n");
+            programBuilder.append("\tdmul\n");
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void stackPeekNegate() {
         programBuilder.append("\tbipush 1\n");
         programBuilder.append("\tixor\n");
+        typeStack.pop();
+        typeStack.push(Type.INT);
     }
 
     public void multiply() {
-        programBuilder.append("\timul\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\timul\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdmul\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void mod() {
-        programBuilder.append("\tirem\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\tirem\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdrem\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void divide() {
-        programBuilder.append("\tidiv\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\tidiv\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tddiv\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void addition() {
-        programBuilder.append("\tiadd\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\tiadd\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdadd\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void subtraction() {
-        programBuilder.append("\tisub\n");
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append("\tisub\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.INT);
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdsub\n");
+            typeStack.pop();
+            typeStack.pop();
+            typeStack.push(Type.DOUBLE);
+        }
     }
 
     public void compareEQ() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmpne FALSE_BRANCH_%d\n", labelId));
+
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmpne FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifne FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
+
 
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
@@ -189,11 +317,23 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void compareNEQ() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmpeq FALSE_BRANCH_%d\n", labelId));
+
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmpeq FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifeq FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
 
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
@@ -202,11 +342,23 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void compareGT() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmple FALSE_BRANCH_%d\n", labelId));
+
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmple FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifle FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
 
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
@@ -215,11 +367,23 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void compareLT() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmpge FALSE_BRANCH_%d\n", labelId));
+
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmpge FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifge FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
 
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
@@ -228,11 +392,23 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void compareGE() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmplt FALSE_BRANCH_%d\n", labelId));
+
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmplt FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tiflt FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
 
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
@@ -241,12 +417,23 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void compareLE() {
         var labelId = labelCount++;
-        programBuilder.append(String.format("\tif_icmpgt FALSE_BRANCH_%d\n", labelId));
 
+        if (typeStack.peek() == Type.INT) {
+            programBuilder.append(String.format("\tif_icmpgt FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        } else if (typeStack.peek() == Type.DOUBLE) {
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifgt FALSE_BRANCH_%d\n", labelId));
+            typeStack.pop();
+            typeStack.pop();
+        }
         programBuilder.append("\ticonst_1\n");
         programBuilder.append(String.format("\tgoto CMP_END_%d\n",  labelId));
 
@@ -254,14 +441,22 @@ public class BytecodeStaticMethodGenerator {
         programBuilder.append("\ticonst_0\n");
 
         programBuilder.append(String.format("CMP_END_%d:\n",  labelId));
+
+        typeStack.push(Type.INT);
     }
 
     public void and() {
         programBuilder.append("\tiand\n");
+        typeStack.pop();
+        typeStack.pop();
+        typeStack.push(Type.INT);
     }
 
     public void or() {
         programBuilder.append("\tior\n");
+        typeStack.pop();
+        typeStack.pop();
+        typeStack.push(Type.INT);
     }
 
     public void ifBranch() {
@@ -326,12 +521,17 @@ public class BytecodeStaticMethodGenerator {
     }
 
     public void returnStmt() {
+        if (methodSymbol.returnType == Type.VOID) {
+            programBuilder.append("\treturn\n");
+            return;
+        }
+
         if (methodSymbol.returnType == Type.INT)
             programBuilder.append("\tireturn\n");
         if (methodSymbol.returnType == Type.STRING)
             programBuilder.append("\tareturn\n");
-        if (methodSymbol.returnType == Type.VOID)
-            programBuilder.append("\treturn\n");
+        if (methodSymbol.returnType == Type.DOUBLE)
+            programBuilder.append("\tdreturn\n");
     }
 
     public void endFunc() {

@@ -61,6 +61,7 @@ public class Main {
 
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         }
     }
