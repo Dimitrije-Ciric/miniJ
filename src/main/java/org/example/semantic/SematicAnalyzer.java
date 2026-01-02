@@ -48,6 +48,7 @@ public class SematicAnalyzer implements Visitor<Type> {
     }
     @Override
     public Type visitProgram(Program program) {
+        currentScope.define(new Symbol("args", Type.STRING));
         for(Stmt stmt: program.stmts) {
             stmt.accept(this);
         }

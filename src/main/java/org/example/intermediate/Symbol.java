@@ -1,7 +1,6 @@
 package org.example.intermediate;
 
 import org.example.lexer.TokenType;
-import org.example.semantic.Type;
 
 import java.util.List;
 
@@ -17,5 +16,25 @@ public class Symbol {
         this.nameS = nameS;
         this.type = type;
         this.localId = localId;
+    }
+
+    public Symbol(String nameS, List<Type> paramTypes, Type returnType) {
+        this.nameS = nameS;
+        this.type = null;
+        this.paramTypes = paramTypes;
+        this.returnType = returnType;
+        this.localId = null;
+    }
+
+    public String getSerializedReturnType() {
+        return returnType.jasminSerialize();
+    }
+
+    public String getSerializedParams() {
+        return paramTypes.stream().map(Type::jasminSerialize).reduce("", String::concat);
+    }
+
+    public String getSerializedType() {
+        return Type.of(type).jasminSerialize();
     }
 }

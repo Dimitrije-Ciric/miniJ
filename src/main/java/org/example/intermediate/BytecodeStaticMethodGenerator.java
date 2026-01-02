@@ -1,5 +1,6 @@
 package org.example.intermediate;
 
+import lombok.Getter;
 import org.example.ast.Stmt;
 import org.example.lexer.Token;
 import org.example.lexer.TokenType;
@@ -7,35 +8,66 @@ import org.example.lexer.TokenType;
 import java.util.List;
 import java.util.Stack;
 
-public class BytecodeGenerator {
+public class BytecodeStaticMethodGenerator {
+
+    public static BytecodeStaticMethodGenerator createMain() {
+        return new BytecodeStaticMethodGenerator(
+                "main",
+                List.of(new Stmt.Param(
+                        new Token(TokenType.STRING, "", 0, 0, 0),
+                        new Token(TokenType.IDENT, "args", 0, 0, 0)
+                )),
+                null,
+                64, 64,
+                List.of());
+    }
 
     private final StringBuilder programBuilder = new StringBuilder();
 
-    private final Integer stackLimit = 64;
-    private final Integer localsLimit = 64;
+    private final Integer stackLimit;
+    private final Integer localsLimit;
 
-    private Integer localsCounter = 1;
+    private Integer localsCounter = 0;
     private Integer labelCount = 0;
-    private Stack<Integer> activeLabels =  new Stack<>();
+    private Stack<Integer> activeLabels = new Stack<>();
 
     private Scope scope = new Scope(null);
 
-    public void initProgram() {
-        programBuilder.append(".class public Main\n");
-        programBuilder.append(".super java/lang/Object\n\n");
-        programBuilder.append(".method public <init>()V\n");
-        programBuilder.append("\taload_0\n");
-        programBuilder.append("\tinvokespecial java/lang/Object/<init>()V\n");
-        programBuilder.append("\treturn\n");
-        programBuilder.append(".end method\n\n");
+    @Getter
+    private final Symbol methodSymbol;
 
-        programBuilder.append(".method public static main([Ljava/lang/String;)V\n");
+    public BytecodeStaticMethodGenerator(String name, List<Stmt.Param> params, TokenType returnType,
+                                         Integer stackLimit, Integer localsLimit, List<Symbol> definedMethods) {
+        this.stackLimit = stackLimit;
+        this.localsLimit = localsLimit;
+
+        StringBuilder argsSerialized = new StringBuilder();
+
+        for (var p : params) {
+            var s = scope.define(new Symbol(
+                    p.name.lexeme(), p.type.type(), localsCounter++));
+            argsSerialized.append(s.getSerializedType());
+        }
+
+        programBuilder.append(String.format(".method public static %s(%s)%s\n", name, argsSerialized, Type.of(returnType).jasminSerialize()));
         programBuilder.append(String.format("\t.limit stack %d\n", stackLimit));
         programBuilder.append(String.format("\t.limit locals %d\n", localsLimit));
+
+        this.methodSymbol = new Symbol(
+                name,
+                params.stream().map(pp -> Type.of(pp.type.type())).toList(),
+                Type.of(returnType)
+        );
+
+        for (var s : definedMethods)
+            scope.define(s);
+    }
+
+    public void registerNewStaticMethod(Symbol s) {
+        scope.define(s);
     }
 
     public String generate() {
-        programBuilder.append("\treturn\n");
         programBuilder.append(".end method\n");
 
         return programBuilder.toString();
@@ -66,15 +98,22 @@ public class BytecodeGenerator {
     }
 
     public void prepareFunctionCall(String name) {
-        if (name.equals("print"))
+        if (name.equals("print")) {
             programBuilder.append("\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
+            return;
+        }
     }
 
     public void callFunction(String name) {
         if (name.equals("print")) {
             programBuilder.append("\tinvokevirtual java/io/PrintStream/println(I)V\n");
             programBuilder.append("\tbipush 0\n");
+            return;
         }
+
+        Symbol s = scope.resolve(name);
+
+        programBuilder.append(String.format("\tinvokestatic Main/%s(%s)%s\n", s.nameS, s.getSerializedParams(), s.getSerializedReturnType()));
     }
 
     public void stackPop() {
@@ -265,10 +304,10 @@ public class BytecodeGenerator {
     }
 
     public void returnStmt() {
-        programBuilder.append("\tireturn\n");
-    }
-
-    public void declareFunc(Token name, List<Stmt.Param> params) {
+        if (methodSymbol.returnType == Type.INT)
+            programBuilder.append("\tireturn\n");
+        if (methodSymbol.returnType == Type.VOID)
+            programBuilder.append("\treturn\n");
     }
 
     public void endFunc() {

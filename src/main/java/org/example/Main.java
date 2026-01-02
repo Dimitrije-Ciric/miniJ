@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.intermediate.BytecodeGenerator;
+import org.example.intermediate.BytecodeClassGenerator;
 import org.example.intermediate.BytecodeGeneratorVisitor;
 import org.example.lexer.Lexer;
 import org.example.lexer.Token;
@@ -49,7 +49,7 @@ public class Main {
             p.program.accept(sa);
             sa.printAnalysis();
 
-            BytecodeGenerator bcg = new BytecodeGenerator();
+            BytecodeClassGenerator bcg = new BytecodeClassGenerator();
             BytecodeGeneratorVisitor bytecodeGeneratorVisitor = new BytecodeGeneratorVisitor(bcg);
 
             p.program.accept(bytecodeGeneratorVisitor);

@@ -10,14 +10,16 @@ import org.example.lexer.TokenType;
 @AllArgsConstructor
 public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
-    private BytecodeGenerator codeGen;
+    private BytecodeClassGenerator codeGen;
 
     @Override
     public Void visitProgram(Program program) {
-        codeGen.initProgram();
+        codeGen.startMain();
 
         for (var stmt : program.stmts)
             stmt.accept(this);
+
+        codeGen.endMain();
 
         return null;
     }
@@ -235,7 +237,7 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visitFuncDeclStmt(Stmt.FuncDecl funcDecl) {
-        codeGen.declareFunc(funcDecl.name, funcDecl.params);
+        codeGen.declareFunc(funcDecl.name.lexeme(), funcDecl.params, funcDecl.type.type());
 
         funcDecl.body.forEach(branch -> branch.accept(this));
 
