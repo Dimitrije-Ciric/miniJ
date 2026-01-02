@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.intermediate.BytecodeGenerator;
+import org.example.intermediate.BytecodeGeneratorVisitor;
 import org.example.lexer.Lexer;
 import org.example.lexer.Token;
 import org.example.lexer.TokenFormatter;
@@ -7,6 +9,7 @@ import org.example.parser.JsonPrinter;
 import org.example.parser.Parser;
 import org.example.semantic.SematicAnalyzer;
 
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -45,6 +48,16 @@ public class Main {
             SematicAnalyzer sa = new SematicAnalyzer();
             p.program.accept(sa);
             sa.printAnalysis();
+
+            BytecodeGenerator bcg = new BytecodeGenerator();
+            BytecodeGeneratorVisitor bytecodeGeneratorVisitor = new BytecodeGeneratorVisitor(bcg);
+
+            p.program.accept(bytecodeGeneratorVisitor);
+
+            PrintWriter out = new PrintWriter("out.j");
+            out.println(bcg.generate());
+
+            out.close();
 
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
