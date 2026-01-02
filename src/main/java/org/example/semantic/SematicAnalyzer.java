@@ -5,6 +5,7 @@ import org.example.ast.Program;
 import org.example.ast.Stmt;
 import org.example.ast.Visitor;
 import org.example.lexer.Token;
+import org.example.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ public class SematicAnalyzer implements Visitor<Type> {
             case BOOL -> Type.BOOL;
             case CHAR -> Type.CHAR;
             case STRING -> Type.STRING;
+            case ARRAY -> Type.INT;
             default -> Type.ERROR;
         };
     }
@@ -364,8 +366,12 @@ public class SematicAnalyzer implements Visitor<Type> {
             error("Assignment to undeclared variable", varAssign.name);
 
         Type exprType = varAssign.value.accept(this);
+        if (varAssign.arrayIndex != null && varAssign.arrayIndex.type() != TokenType.INT_LIT) {
+            var idx = currentScope.resolve(varAssign.arrayIndex.lexeme());
+            if (idx == null && idx.type != Type.INT)
+                error("Type mismatch in assignment", varAssign.arrayIndex);
+        }
         if (exprType != s.type)
-            error("Type mismatch in assignment", varAssign.name);
         log("Assigned variable: " + varAssign.name.lexeme() + " = " + exprType);
         return Type.VOID;
     }

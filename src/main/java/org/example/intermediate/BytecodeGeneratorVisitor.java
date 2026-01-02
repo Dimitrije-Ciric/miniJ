@@ -142,6 +142,8 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visitTermExpr(Expr.TermExpr termExpr) {
+        if (termExpr.arrayIndex != null)
+            codeGen.stackPush(termExpr.arrayIndex);
         codeGen.stackPush(termExpr.term);
         return null;
     }
@@ -166,7 +168,7 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visitVarDecl(Stmt.VarDecl varDecl) {
-        codeGen.declareVariable(varDecl.name.lexeme(), varDecl.type.type());
+        codeGen.declareVariable(varDecl.name.lexeme(), varDecl.type.type(), varDecl.type.type() == TokenType.ARRAY ? (Integer) varDecl.arrayLength.literal() : null);
 
         if (varDecl.init != null) {
             varDecl.init.accept(this);
@@ -252,7 +254,7 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
     public Void visitVarAssign(Stmt.VarAssign varAssign) {
         varAssign.value.accept(this);
 
-        codeGen.varAssign(varAssign.name.lexeme());
+        codeGen.varAssign(varAssign.name.lexeme(), varAssign.arrayIndex);
 
         return null;
     }

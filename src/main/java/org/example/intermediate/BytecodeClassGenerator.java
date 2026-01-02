@@ -43,16 +43,16 @@ public class BytecodeClassGenerator {
         mainMethod.endFunc();
     }
 
-    public void declareVariable(String name, TokenType type) {
-        currentMethod.declareVariable(name, type);
+    public void declareVariable(String name, TokenType type, Integer arrayLength) {
+        currentMethod.declareVariable(name, type, arrayLength);
     }
 
-    public void varAssign(String name) {
-        currentMethod.varAssign(name);
+    public void varAssign(String name, Token arrayIndex) {
+        currentMethod.varAssign(name, arrayIndex);
     }
 
     public void initVariable(String name) {
-        currentMethod.initVariable(name);
+        currentMethod.initVariable(name, null);
     }
 
     public void prepareFunctionCall(String name) {

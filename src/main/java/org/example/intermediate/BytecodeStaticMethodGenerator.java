@@ -54,6 +54,8 @@ public class BytecodeStaticMethodGenerator {
             for (var s : definedMethods)
                 scope.define(s);
 
+            localsCounter = 1;
+
             return;
         }
 
@@ -89,7 +91,7 @@ public class BytecodeStaticMethodGenerator {
         return programBuilder.toString();
     }
 
-    public void declareVariable(String name, TokenType type) {
+    public void declareVariable(String name, TokenType type, Integer arrayLength) {
         Symbol s = scope.define(new Symbol(name, type, localsCounter++));
 
         switch (type) {
@@ -110,10 +112,15 @@ public class BytecodeStaticMethodGenerator {
                 programBuilder.append(String.format("\tldc %d\n", 0));
                 programBuilder.append(String.format("\tistore %d\n", s.localId));
                 break;
+            case TokenType.ARRAY:
+                programBuilder.append(String.format("\tbipush %d\n", arrayLength));
+                programBuilder.append("\tnewarray int\n");
+                programBuilder.append(String.format("\tastore %d\n", s.localId));
+                break;
         }
     }
 
-    public void varAssign(String name) {
+    public void varAssign(String name, Token arrayIndex) {
         Symbol s = scope.resolve(name);
 
         switch (s.type) {
@@ -129,12 +136,24 @@ public class BytecodeStaticMethodGenerator {
             case TokenType.BOOL:
                 programBuilder.append(String.format("\tistore %d\n", s.localId));
                 break;
+            case TokenType.ARRAY:
+                programBuilder.append(String.format("\taload %d\n", s.localId));
+                programBuilder.append("\tswap\n");
+                if (arrayIndex.type() == TokenType.INT_LIT)
+                    programBuilder.append(String.format("\tldc %d\n", (Integer) arrayIndex.literal()));
+                else if (arrayIndex.type() == TokenType.IDENT) {
+                    Symbol idx = scope.resolve(arrayIndex.lexeme());
+                    programBuilder.append(String.format("\tiload %d\n", idx.localId));
+                }
+                programBuilder.append("\tswap\n");
+                programBuilder.append("\tiastore\n");
+                break;
         }
         typeStack.pop();
     }
 
-    public void initVariable(String name) {
-        this.varAssign(name);
+    public void initVariable(String name, Token arrayIndex) {
+        this.varAssign(name, arrayIndex);
     }
 
     public void prepareFunctionCall(String name) {
@@ -218,6 +237,12 @@ public class BytecodeStaticMethodGenerator {
             }
             if (s.type == TokenType.BOOL) {
                 programBuilder.append(String.format("\tiload %d\n", s.localId));
+                typeStack.push(Type.INT);
+            }
+            if (s.type == TokenType.ARRAY) {
+                programBuilder.append(String.format("\taload %d\n", s.localId));
+                programBuilder.append("\tswap\n");
+                programBuilder.append("\tiaload\n");
                 typeStack.push(Type.INT);
             }
         }
