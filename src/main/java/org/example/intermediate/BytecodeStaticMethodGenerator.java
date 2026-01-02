@@ -106,6 +106,10 @@ public class BytecodeStaticMethodGenerator {
                 programBuilder.append(String.format("\tdstore %d\n", s.localId));
                 localsCounter++;
                 break;
+            case TokenType.BOOL:
+                programBuilder.append(String.format("\tldc %d\n", 0));
+                programBuilder.append(String.format("\tistore %d\n", s.localId));
+                break;
         }
     }
 
@@ -121,6 +125,9 @@ public class BytecodeStaticMethodGenerator {
                 break;
             case TokenType.DOUBLE:
                 programBuilder.append(String.format("\tdstore %d\n", s.localId));
+                break;
+            case TokenType.BOOL:
+                programBuilder.append(String.format("\tistore %d\n", s.localId));
                 break;
         }
         typeStack.pop();
@@ -187,6 +194,14 @@ public class BytecodeStaticMethodGenerator {
             programBuilder.append(String.format("\tldc2_w %s\n", term.lexeme()));
             typeStack.push(Type.DOUBLE);
         }
+        if (term.type() == TokenType.BOOL_FALSE_LIT) {
+            programBuilder.append("\tldc 0\n");
+            typeStack.push(Type.INT);
+        }
+        if (term.type() == TokenType.BOOL_TRUE_LIT) {
+            programBuilder.append("\tldc 1\n");
+            typeStack.push(Type.INT);
+        }
         if (term.type() == TokenType.IDENT) {
             Symbol s = scope.resolve(term.lexeme());
             if (s.type == TokenType.INT) {
@@ -200,6 +215,10 @@ public class BytecodeStaticMethodGenerator {
             if (s.type == TokenType.DOUBLE) {
                 programBuilder.append(String.format("\tdload %d\n", s.localId));
                 typeStack.push(Type.DOUBLE);
+            }
+            if (s.type == TokenType.BOOL) {
+                programBuilder.append(String.format("\tiload %d\n", s.localId));
+                typeStack.push(Type.INT);
             }
         }
     }
@@ -526,7 +545,7 @@ public class BytecodeStaticMethodGenerator {
             return;
         }
 
-        if (methodSymbol.returnType == Type.INT)
+        if (methodSymbol.returnType == Type.INT || methodSymbol.returnType == Type.BOOL)
             programBuilder.append("\tireturn\n");
         if (methodSymbol.returnType == Type.STRING)
             programBuilder.append("\tareturn\n");

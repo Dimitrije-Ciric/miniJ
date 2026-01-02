@@ -5,7 +5,7 @@ import org.example.lexer.TokenType;
 public enum Type {
     INT("I"),
     DOUBLE("D"),
-    BOOL(""),
+    BOOL("I"),
     CHAR(""),
     STRING("Ljava/lang/String;"),
     VOID("V"),
