@@ -120,7 +120,9 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
             if (multiplicativeExpr.ops.get(i-1).type() == TokenType.MULTIPLY)
                 codeGen.multiply();
-            else codeGen.divide();
+            else if (multiplicativeExpr.ops.get(i-1).type() == TokenType.DIVIDE)
+                codeGen.divide();
+            else codeGen.mod();
         }
 
         return null;

@@ -13,10 +13,7 @@ public class BytecodeStaticMethodGenerator {
     public static BytecodeStaticMethodGenerator createMain() {
         return new BytecodeStaticMethodGenerator(
                 "main",
-                List.of(new Stmt.Param(
-                        new Token(TokenType.STRING, "", 0, 0, 0),
-                        new Token(TokenType.IDENT, "args", 0, 0, 0)
-                )),
+                List.of(),
                 null,
                 64, 64,
                 List.of());
@@ -40,6 +37,23 @@ public class BytecodeStaticMethodGenerator {
                                          Integer stackLimit, Integer localsLimit, List<Symbol> definedMethods) {
         this.stackLimit = stackLimit;
         this.localsLimit = localsLimit;
+
+        if (name.equals("main")) {
+            programBuilder.append(".method public static main([Ljava/lang/String;)V\n");
+            programBuilder.append(String.format("\t.limit stack %d\n", stackLimit));
+            programBuilder.append(String.format("\t.limit locals %d\n", localsLimit));
+
+            this.methodSymbol = new Symbol(
+                    name,
+                    null,
+                    Type.of(returnType)
+            );
+
+            for (var s : definedMethods)
+                scope.define(s);
+
+            return;
+        }
 
         StringBuilder argsSerialized = new StringBuilder();
 
@@ -106,7 +120,7 @@ public class BytecodeStaticMethodGenerator {
 
     public void callFunction(String name) {
         if (name.equals("print")) {
-            programBuilder.append("\tinvokevirtual java/io/PrintStream/println(I)V\n");
+            programBuilder.append("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
             programBuilder.append("\tbipush 0\n");
             return;
         }
@@ -123,10 +137,14 @@ public class BytecodeStaticMethodGenerator {
     public void stackPush(Token term) {
         if (term.type() == TokenType.INT_LIT)
             programBuilder.append(String.format("\tldc %s\n", term.lexeme()));
+        if (term.type() == TokenType.STRING_LIT)
+            programBuilder.append(String.format("\tldc \"%s\"\n", term.literal()));
         if (term.type() == TokenType.IDENT) {
             Symbol s = scope.resolve(term.lexeme());
             if (s.type == TokenType.INT)
                 programBuilder.append(String.format("\tiload %d\n", s.localId));
+            if (s.type == TokenType.STRING)
+                programBuilder.append(String.format("\taload %d\n", s.localId));
         }
     }
 
@@ -142,6 +160,10 @@ public class BytecodeStaticMethodGenerator {
 
     public void multiply() {
         programBuilder.append("\timul\n");
+    }
+
+    public void mod() {
+        programBuilder.append("\tirem\n");
     }
 
     public void divide() {
@@ -306,6 +328,8 @@ public class BytecodeStaticMethodGenerator {
     public void returnStmt() {
         if (methodSymbol.returnType == Type.INT)
             programBuilder.append("\tireturn\n");
+        if (methodSymbol.returnType == Type.STRING)
+            programBuilder.append("\tareturn\n");
         if (methodSymbol.returnType == Type.VOID)
             programBuilder.append("\treturn\n");
     }

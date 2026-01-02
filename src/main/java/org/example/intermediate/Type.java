@@ -7,7 +7,7 @@ public enum Type {
     DOUBLE("D"),
     BOOL(""),
     CHAR(""),
-    STRING("[Ljava/lang/String;"),
+    STRING("Ljava/lang/String;"),
     VOID("V"),
     ARRAY(""),
     FUNCTION(""),

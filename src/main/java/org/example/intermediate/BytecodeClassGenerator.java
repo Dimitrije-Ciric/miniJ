@@ -6,6 +6,7 @@ import org.example.lexer.TokenType;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class BytecodeClassGenerator {
 
@@ -85,6 +86,10 @@ public class BytecodeClassGenerator {
 
     public void divide() {
         currentMethod.divide();
+    }
+
+    public void mod() {
+        currentMethod.mod();
     }
 
     public void addition() {
