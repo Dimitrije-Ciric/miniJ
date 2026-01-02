@@ -235,6 +235,11 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visitFuncDeclStmt(Stmt.FuncDecl funcDecl) {
+        codeGen.declareFunc(funcDecl.name, funcDecl.params);
+
+        funcDecl.body.forEach(branch -> branch.accept(this));
+
+        codeGen.endFunc();
 
         return null;
     }

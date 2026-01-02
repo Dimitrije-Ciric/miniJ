@@ -1,8 +1,10 @@
 package org.example.intermediate;
 
+import org.example.ast.Stmt;
 import org.example.lexer.Token;
 import org.example.lexer.TokenType;
 
+import java.util.List;
 import java.util.Stack;
 
 public class BytecodeGenerator {
@@ -266,4 +268,9 @@ public class BytecodeGenerator {
         programBuilder.append("\tireturn\n");
     }
 
+    public void declareFunc(Token name, List<Stmt.Param> params) {
+    }
+
+    public void endFunc() {
+    }
 }
