@@ -143,8 +143,9 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
     @Override
     public Void visitTermExpr(Expr.TermExpr termExpr) {
         if (termExpr.arrayIndex != null)
-            codeGen.stackPush(termExpr.arrayIndex);
-        codeGen.stackPush(termExpr.term);
+            codeGen.stackPushArrayEl(termExpr.term, termExpr.arrayIndex);
+        else
+            codeGen.stackPush(termExpr.term);
         return null;
     }
 

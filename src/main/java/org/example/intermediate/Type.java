@@ -9,7 +9,7 @@ public enum Type {
     CHAR(""),
     STRING("Ljava/lang/String;"),
     VOID("V"),
-    ARRAY(""),
+    ARRAY("[I"),
     FUNCTION(""),
     ERROR("");
 
@@ -32,6 +32,8 @@ public enum Type {
             return CHAR;
         if (tt == TokenType.STRING)
             return STRING;
+        if (tt == TokenType.ARRAY)
+            return ARRAY;
         return null;
     }
 

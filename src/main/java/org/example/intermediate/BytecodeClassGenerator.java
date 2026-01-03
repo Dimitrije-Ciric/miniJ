@@ -71,6 +71,10 @@ public class BytecodeClassGenerator {
         currentMethod.stackPush(term);
     }
 
+    public void stackPushArrayEl(Token term, Token arrayIndex) {
+        currentMethod.stackPushArrayEl(term, arrayIndex);
+    }
+
     public void stackPeekMultiplyByMinusOne() {
         currentMethod.stackPeekMultiplyByMinusOne();
     }

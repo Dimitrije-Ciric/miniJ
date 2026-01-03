@@ -1,0 +1,13 @@
+arrayJ x(arrayJ y) {
+    y[1] = 2!
+    return y!
+}
+
+arrayJ[20] niz!
+
+niz[0] = 1!
+
+
+print("hello")!
+print(niz[0])!
+print(niz[1])!

@@ -241,11 +241,18 @@ public class BytecodeStaticMethodGenerator {
             }
             if (s.type == TokenType.ARRAY) {
                 programBuilder.append(String.format("\taload %d\n", s.localId));
-                programBuilder.append("\tswap\n");
-                programBuilder.append("\tiaload\n");
-                typeStack.push(Type.INT);
+                typeStack.push(Type.ARRAY);
             }
         }
+    }
+
+    public void stackPushArrayEl(Token term, Token arrayIndex) {
+        this.stackPush(arrayIndex);
+        Symbol s = scope.resolve(term.lexeme());
+        programBuilder.append(String.format("\taload %d\n", s.localId));
+        programBuilder.append("\tswap\n");
+        programBuilder.append("\tiaload\n");
+        typeStack.push(Type.INT);
     }
 
     public void stackPeekMultiplyByMinusOne() {
@@ -576,6 +583,8 @@ public class BytecodeStaticMethodGenerator {
             programBuilder.append("\tareturn\n");
         if (methodSymbol.returnType == Type.DOUBLE)
             programBuilder.append("\tdreturn\n");
+        if (methodSymbol.returnType == Type.ARRAY)
+            programBuilder.append("\tareturn\n");
     }
 
     public void endFunc() {
