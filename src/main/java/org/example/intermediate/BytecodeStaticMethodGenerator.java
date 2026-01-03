@@ -101,7 +101,7 @@ public class BytecodeStaticMethodGenerator {
                 break;
             case TokenType.STRING:
                 programBuilder.append("\tldc \"\"\n");
-                programBuilder.append(String.format("\tistore %d\n", s.localId));
+                programBuilder.append(String.format("\tastore %d\n", s.localId));
                 break;
             case TokenType.DOUBLE:
                 programBuilder.append("\tldc2_w 0.0\n");
