@@ -160,6 +160,19 @@ public class SematicAnalyzer implements Visitor<Type> {
                 log("UnaryExpr MINUS with type: " + t);
                 return t;
 
+            case INT:
+                if (t != Type.STRING && t != Type.DOUBLE && t != Type.INT)
+                    error("Unary int cast requires number or string", unaryExpr.unaryOp);
+                return Type.INT;
+            case DOUBLE:
+                if (t != Type.INT && t != Type.STRING && t != Type.DOUBLE)
+                    error("Unary double cast requires number or string", unaryExpr.unaryOp);
+                return Type.DOUBLE;
+            case STRING:
+                if (t != Type.INT && t != Type.DOUBLE && t != Type.STRING)
+                    error("Unary string cast requires number or string", unaryExpr.unaryOp);
+                return Type.STRING;
+
             default: {
                 log("UnaryExpr unknown operation");
                 return Type.ERROR;

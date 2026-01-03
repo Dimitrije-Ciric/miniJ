@@ -276,6 +276,40 @@ public class BytecodeStaticMethodGenerator {
         typeStack.push(Type.INT);
     }
 
+    public void castTo(TokenType castInto) {
+        Type typeToCast = typeStack.pop();
+
+        if (typeToCast == Type.DOUBLE && castInto == TokenType.INT) {
+            Integer labelId = labelCount++;
+
+            programBuilder.append("\tdup2\n");
+            programBuilder.append("\tdup2\n");
+            programBuilder.append("\td2i\n");
+            programBuilder.append("\ti2d\n");
+            programBuilder.append("\tdcmpl\n");
+            programBuilder.append(String.format("\tifeq CAST_ALLOWED_%d\n", labelId));
+            programBuilder.append("\tnew java/lang/IllegalArgumentException\n\n");
+            programBuilder.append("\tdup\n");
+            programBuilder.append("\tldc \"Double has non-zero decimal part\"\n");
+            programBuilder.append("\tinvokespecial java/lang/IllegalArgumentException/<init>(Ljava/lang/String;)V\n\n");
+            programBuilder.append("\tathrow\n");
+            programBuilder.append(String.format("CAST_ALLOWED_%d:\n", labelId));
+            programBuilder.append("\td2i\n");
+        } else if (typeToCast == Type.INT && castInto == TokenType.DOUBLE) {
+            programBuilder.append("\ti2d\n");
+        } else if (typeToCast == Type.INT && castInto == TokenType.STRING) {
+            programBuilder.append("\tinvokestatic java/lang/String/valueOf(I)Ljava/lang/String;\n");
+        } else if (typeToCast == Type.DOUBLE && castInto == TokenType.STRING) {
+            programBuilder.append("\tinvokestatic java/lang/String/valueOf(D)Ljava/lang/String;\n");
+        } else if (typeToCast == Type.STRING && castInto == TokenType.INT) {
+            programBuilder.append("\tinvokestatic java/lang/Integer/parseInt(Ljava/lang/String;)I\n\n");
+        } else if (typeToCast == Type.STRING && castInto == TokenType.DOUBLE) {
+            programBuilder.append("\tinvokestatic java/lang/Double/parseDouble(Ljava/lang/String;)D\n");
+        }
+
+        typeStack.push(Type.of(castInto));
+    }
+
     public void multiply() {
         if (typeStack.peek() == Type.INT) {
             programBuilder.append("\timul\n");

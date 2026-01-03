@@ -29,7 +29,7 @@ public enum TokenType {
     // other
     BEGIN, END,
     LPAREN, RPAREN, LBRACKET, RBRACKET, SEP_COMMA, SEP_EX,
-    SPACE, NEW_LINE, EOF,
+    SPACE, NEW_LINE, EOF, CAST_WRAP,
 
     // identifier
     IDENT

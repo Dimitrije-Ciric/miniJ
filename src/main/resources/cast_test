@@ -1,0 +1,12 @@
+intJ a = # intJ # 1.0!
+
+print(a)!
+
+print(#doubleJ# 1)!
+
+print(#doubleJ# "1.5")!
+print(#intJ# "10")!
+
+print(#stringJ# 1.6)!
+
+a = # intJ # 1.5!

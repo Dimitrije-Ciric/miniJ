@@ -748,6 +748,24 @@ public final class Parser {
 
         if (peek().type() == TokenType.PLUS || peek().type() == TokenType.MINUS || peek().type() == TokenType.NOT)
             op = advance();
+        else if (peek().type() == TokenType.CAST_WRAP) {
+            advance();
+            op = advance();
+
+            if (op.type() != TokenType.INT && op.type() != TokenType.DOUBLE && op.type() != TokenType.STRING) {
+                setMessage("Invalidno kastovanje");
+
+                this.current = cursor;
+                return null;
+            }
+
+            if (advance().type() != TokenType.CAST_WRAP) {
+                setMessage("ocekuje se #");
+
+                this.current = cursor;
+                return null;
+            }
+        }
 
         Expr e = functionCall();
 

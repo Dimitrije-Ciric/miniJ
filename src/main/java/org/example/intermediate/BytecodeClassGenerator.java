@@ -83,6 +83,10 @@ public class BytecodeClassGenerator {
         currentMethod.stackPeekNegate();
     }
 
+    public void castTo(TokenType type) {
+        currentMethod.castTo(type);
+    }
+
     public void multiply() {
         currentMethod.multiply();
     }
