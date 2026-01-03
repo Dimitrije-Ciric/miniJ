@@ -1,0 +1,3 @@
+arrayJ[20] niz!
+
+print(niz[21])!

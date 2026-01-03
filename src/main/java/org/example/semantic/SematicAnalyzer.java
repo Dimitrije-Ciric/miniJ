@@ -44,6 +44,11 @@ public class SematicAnalyzer implements Visitor<Type> {
         log("Entering new scope");
     }
 
+    private void enterNewFunctionScope() {
+        currentScope = new Scope(currentScope, true);
+        log("Entering new scope");
+    }
+
     private void exitScope() {
         currentScope = currentScope.parent();
         log("Exiting scope");
@@ -346,7 +351,7 @@ public class SematicAnalyzer implements Visitor<Type> {
         log("Declared function: " + funcDecl.name.lexeme() + " returns " + fun.returnType);
 
         currentFunctionReturnType = fun.returnType;
-        enterScope();
+        enterNewFunctionScope();
         for (Stmt.Param p : funcDecl.params) {
             currentScope.define(new Symbol(p.name.lexeme(), mapType(p.type)));
             log("Function param: " + p.name.lexeme() + " : " + mapType(p.type));
