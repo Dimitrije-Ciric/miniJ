@@ -36,7 +36,7 @@ public class Lexer {
             Pattern.compile("^\"[^\"]*\""),   // string literal
             Pattern.compile("^'[^']'"),       // char literal
             Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*"), // identifikator
-            Pattern.compile("^[+\\-*/%()\\[\\]{}<>=!,]") // single char token
+            Pattern.compile("^[+\\-*/%()\\[\\]{}<>=!,#]") // single char token
     };
 
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
@@ -245,6 +245,7 @@ public class Lexer {
             case '=' -> TokenType.ASSIGN;
             case '!' -> TokenType.SEP_EX;
             case ',' -> TokenType.SEP_COMMA;
+            case '#' -> TokenType.CAST_WRAP;
             default -> {
                 throw error("Unexpected character: '" + c + "'");
             }

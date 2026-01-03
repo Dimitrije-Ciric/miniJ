@@ -1,0 +1,8 @@
+stringJ a = "hello"!
+
+stringJ x(stringJ a) {
+    return a!
+}
+
+print(x(a))!
+print(x("world"))!

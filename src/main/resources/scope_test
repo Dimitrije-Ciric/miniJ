@@ -1,0 +1,8 @@
+intJ a = 10!
+
+intJ addA(intJ b) {
+    return a + b!
+}
+
+print(addA(10+5))!
+print(addA(a))!

@@ -1,9 +1,9 @@
-intJ a = read()!
-intJ b = read()!
-intJ c = read()!
+intJ a = # intJ# read()!
+intJ b =  # intJ# read()!
+intJ c =  # intJ# read()!
 intJ max = a!
 
 ifJ(b > max){ max = b! }
-elseifJ(c > max){ max = c! }
+ifJ(c > max){ max = c! }
 
 print(max)!

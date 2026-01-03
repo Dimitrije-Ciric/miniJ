@@ -1,4 +1,4 @@
-intJ n = read()!
+intJ n = #intJ# read()!
 
 ifJ(n > 0){
     print("pozitivan")!

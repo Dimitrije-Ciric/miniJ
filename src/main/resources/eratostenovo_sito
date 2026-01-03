@@ -1,0 +1,25 @@
+intJ n = 100!
+
+arrayJ[101] sito!
+
+forJ (intJ i = 0! i <= n! i = i+1) {
+    sito[i] = 1!
+}
+
+sito[0] = 0!
+sito[1] = 0!
+
+forJ (intJ i = 2! i <= n! i = i + 1) {
+    ifJ (sito[i] == 1 and i * i <= n) {
+        forJ (intJ j = i * i! j <= n! j = j + i) {
+            sito[j] = 0!
+        }
+    }
+}
+
+print("Prosti brojevi do 100:")!
+forJ (intJ i = 2! i <= n! i = i + 1) {
+    ifJ (sito[i] == 1) {
+        print(i)!
+    }
+}

@@ -1,0 +1,7 @@
+intJ a = 10!
+
+ifJ (1 == 1) {
+    intJ a = 15!
+    print(a)!
+}
+print(a)!

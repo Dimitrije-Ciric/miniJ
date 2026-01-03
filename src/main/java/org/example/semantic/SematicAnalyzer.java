@@ -5,6 +5,7 @@ import org.example.ast.Program;
 import org.example.ast.Stmt;
 import org.example.ast.Visitor;
 import org.example.lexer.Token;
+import org.example.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ public class SematicAnalyzer implements Visitor<Type> {
             case BOOL -> Type.BOOL;
             case CHAR -> Type.CHAR;
             case STRING -> Type.STRING;
+            case ARRAY -> Type.ARRAY;
             default -> Type.ERROR;
         };
     }
@@ -42,12 +44,18 @@ public class SematicAnalyzer implements Visitor<Type> {
         log("Entering new scope");
     }
 
+    private void enterNewFunctionScope() {
+        currentScope = new Scope(currentScope, true);
+        log("Entering new scope");
+    }
+
     private void exitScope() {
         currentScope = currentScope.parent();
         log("Exiting scope");
     }
     @Override
     public Type visitProgram(Program program) {
+        currentScope.define(new Symbol("args", Type.STRING));
         for(Stmt stmt: program.stmts) {
             stmt.accept(this);
         }
@@ -152,6 +160,19 @@ public class SematicAnalyzer implements Visitor<Type> {
                 log("UnaryExpr MINUS with type: " + t);
                 return t;
 
+            case INT:
+                if (t != Type.STRING && t != Type.DOUBLE && t != Type.INT)
+                    error("Unary int cast requires number or string", unaryExpr.unaryOp);
+                return Type.INT;
+            case DOUBLE:
+                if (t != Type.INT && t != Type.STRING && t != Type.DOUBLE)
+                    error("Unary double cast requires number or string", unaryExpr.unaryOp);
+                return Type.DOUBLE;
+            case STRING:
+                if (t != Type.INT && t != Type.DOUBLE && t != Type.STRING)
+                    error("Unary string cast requires number or string", unaryExpr.unaryOp);
+                return Type.STRING;
+
             default: {
                 log("UnaryExpr unknown operation");
                 return Type.ERROR;
@@ -170,6 +191,8 @@ public class SematicAnalyzer implements Visitor<Type> {
             case IDENT -> {
                 Symbol s = currentScope.resolve(termExpr.term.lexeme());
                 if (s == null) error("Undeclared variable", termExpr.term);
+                if (s.type == Type.ARRAY && termExpr.arrayIndex != null)
+                    yield Type.INT;
                 yield s.type;
             }
             default -> Type.ERROR;
@@ -341,7 +364,7 @@ public class SematicAnalyzer implements Visitor<Type> {
         log("Declared function: " + funcDecl.name.lexeme() + " returns " + fun.returnType);
 
         currentFunctionReturnType = fun.returnType;
-        enterScope();
+        enterNewFunctionScope();
         for (Stmt.Param p : funcDecl.params) {
             currentScope.define(new Symbol(p.name.lexeme(), mapType(p.type)));
             log("Function param: " + p.name.lexeme() + " : " + mapType(p.type));
@@ -363,8 +386,12 @@ public class SematicAnalyzer implements Visitor<Type> {
             error("Assignment to undeclared variable", varAssign.name);
 
         Type exprType = varAssign.value.accept(this);
+        if (varAssign.arrayIndex != null && varAssign.arrayIndex.type() != TokenType.INT_LIT) {
+            var idx = currentScope.resolve(varAssign.arrayIndex.lexeme());
+            if (idx == null && idx.type != Type.INT)
+                error("Type mismatch in assignment", varAssign.arrayIndex);
+        }
         if (exprType != s.type)
-            error("Type mismatch in assignment", varAssign.name);
         log("Assigned variable: " + varAssign.name.lexeme() + " = " + exprType);
         return Type.VOID;
     }

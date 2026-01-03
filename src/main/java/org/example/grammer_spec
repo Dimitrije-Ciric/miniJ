@@ -32,7 +32,11 @@ multiplicative_expr:
     unary_expr ((* | / | %) unary_expr)* ;
 
 unary_expr:
-    (+ | - | not)? (group_expr | function_call | terminal) ;
+    (+ | - | not | cast)? (group_expr | function_call | terminal) ;
+
+cast: "#" type_lit "#"
+
+type_lit: (intJ | doubleJ | stringJ)
 
 group : "(" expr ")" ;
 
