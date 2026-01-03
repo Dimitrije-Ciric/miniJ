@@ -6,7 +6,7 @@ arrayJ x(arrayJ y) {
 arrayJ[20] niz!
 
 niz[0] = 1!
-
+x(niz)!
 
 print("hello")!
 print(niz[0])!

@@ -34,7 +34,7 @@ public class SematicAnalyzer implements Visitor<Type> {
             case BOOL -> Type.BOOL;
             case CHAR -> Type.CHAR;
             case STRING -> Type.STRING;
-            case ARRAY -> Type.INT;
+            case ARRAY -> Type.ARRAY;
             default -> Type.ERROR;
         };
     }
@@ -173,6 +173,8 @@ public class SematicAnalyzer implements Visitor<Type> {
             case IDENT -> {
                 Symbol s = currentScope.resolve(termExpr.term.lexeme());
                 if (s == null) error("Undeclared variable", termExpr.term);
+                if (s.type == Type.ARRAY && termExpr.arrayIndex != null)
+                    yield Type.INT;
                 yield s.type;
             }
             default -> Type.ERROR;
