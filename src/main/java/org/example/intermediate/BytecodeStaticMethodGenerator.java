@@ -161,6 +161,18 @@ public class BytecodeStaticMethodGenerator {
             programBuilder.append("\tgetstatic java/lang/System/out Ljava/io/PrintStream;\n");
             return;
         }
+        if (name.equals("read")) {
+            Symbol s = scope.resolve("$_scanner");
+            if (s == null) {
+                s = scope.define(new Symbol("$_scanner", null, localsCounter++));
+                programBuilder.append("\tnew java/util/Scanner\n");
+                programBuilder.append("\tdup\n");
+                programBuilder.append("\tgetstatic java/lang/System/in Ljava/io/InputStream;\n");
+                programBuilder.append("\tinvokespecial java/util/Scanner/<init>(Ljava/io/InputStream;)V\n");
+                programBuilder.append(String.format("\tastore %d\n", s.localId));
+            }
+            return;
+        }
     }
 
     public void callFunction(String name) {
@@ -173,6 +185,13 @@ public class BytecodeStaticMethodGenerator {
                 programBuilder.append("\tinvokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
             typeStack.pop();
             typeStack.push(Type.VOID);
+            return;
+        }
+        if (name.equals("read")) {
+            Symbol s = scope.resolve("$_scanner");
+            programBuilder.append(String.format("\taload %d\n", s.localId));
+            programBuilder.append("\tinvokevirtual java/util/Scanner/nextLine()Ljava/lang/String;\n");
+            typeStack.push(Type.STRING);
             return;
         }
 

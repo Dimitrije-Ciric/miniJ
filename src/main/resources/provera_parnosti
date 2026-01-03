@@ -1,4 +1,4 @@
-intJ x = read()!
+intJ x = #intJ# read()!
 
 ifJ(x % 2 == 0){
     print("paran")!

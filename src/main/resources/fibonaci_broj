@@ -19,6 +19,5 @@ intJ fibonaci(intJ n) {
    return c!
 }
 
-intJ broj = 10!
-intJ rez = fibonaci(broj)!
+intJ rez = fibonaci(#intJ# read())!
 print(rez)!

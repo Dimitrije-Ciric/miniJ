@@ -11,7 +11,8 @@ public enum Type {
     VOID("V"),
     ARRAY("[I"),
     FUNCTION(""),
-    ERROR("");
+    ERROR(""),
+    SCANNER("");
 
     private final String jasminSerialized;
 

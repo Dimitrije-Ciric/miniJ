@@ -134,7 +134,7 @@ public class BytecodeGeneratorVisitor implements Visitor<Void> {
 
         if (unaryExpr.unaryOp.type() == TokenType.MINUS)
             codeGen.stackPeekMultiplyByMinusOne();
-        if (unaryExpr.unaryOp.type() == TokenType.NOT)
+        else if (unaryExpr.unaryOp.type() == TokenType.NOT)
             codeGen.stackPeekNegate();
         else codeGen.castTo(unaryExpr.unaryOp.type());
 
